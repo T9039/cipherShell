@@ -1,42 +1,65 @@
 // --- INITIALIZATION ---
 document.addEventListener('DOMContentLoaded', () => {
-    // Set focus to the first meaningful element? Or just wait for user.
     console.log("CipherShell Environment Loaded.");
 });
 
-// --- KEYBOARD SHORTCUTS ---
+// --- KEYBOARD SHORTCUTS (The Brains) ---
 document.addEventListener('keydown', (e) => {
-    // Alt + 1 : Switch to Generator
-    if (e.ctrlKey && e.key === '1') {
-        switchTab('generator');
-    }
-    // Alt + 2 : Switch to Vault
-    if (e.ctrlKey && e.key === '2') {
-        switchTab('vault');
-    }
     
-    // Vault Specific Shortcuts
+    // 1. GLOBAL NAVIGATION (Ctrl + Shift + 1/2/3)
+    if (e.ctrlKey && e.shiftKey) {
+        // We use e.code because "Shift+1" makes e.key equal "!", not "1"
+        if (e.code === 'Digit1') {
+            e.preventDefault();
+            switchTab('generator');
+        }
+        if (e.code === 'Digit2') {
+            e.preventDefault();
+            switchTab('vault');
+        }
+        if (e.code === 'Digit3') {
+            e.preventDefault();
+            switchTab('identity');
+        }
+    }
+
+    // 2. VAULT SHORTCUTS
     if (!document.getElementById('section-vault').classList.contains('hidden')) {
-        // Ctrl + E : Encrypt
         if (e.ctrlKey && e.key === 'e') {
-            e.preventDefault(); // Prevent browser search
+            e.preventDefault();
             processVault('encrypt');
         }
-        // Ctrl + D : Decrypt
         if (e.ctrlKey && e.key === 'd') {
-            e.preventDefault(); // Prevent browser bookmark
+            e.preventDefault();
             processVault('decrypt');
         }
     }
 
-    // Generator Specific Shortcuts
+    // 3. IDENTITY SHORTCUTS
+    if (!document.getElementById('section-identity').classList.contains('hidden')) {
+        // Ctrl + G : Generate Keys
+        if (e.ctrlKey && e.key === 'g') {
+            e.preventDefault();
+            generateIdentity();
+        }
+        // Ctrl + E : Encrypt RSA
+        if (e.ctrlKey && e.key === 'e') {
+            e.preventDefault(); 
+            processRSA('encrypt');
+        }
+        // Ctrl + D : Decrypt RSA
+        if (e.ctrlKey && e.key === 'd') {
+            e.preventDefault(); 
+            processRSA('decrypt');
+        }
+    }
+
+    // 4. GENERATOR SHORTCUTS
     if (!document.getElementById('section-generator').classList.contains('hidden')) {
-        // F1 : Random
         if (e.key === 'F1') {
             e.preventDefault();
             generatePass('random');
         }
-        // F2 : Memorable
         if (e.key === 'F2') {
             e.preventDefault();
             generatePass('memorable');
@@ -47,42 +70,46 @@ document.addEventListener('keydown', (e) => {
 
 // --- TAB SWITCHING LOGIC ---
 function switchTab(tabName) {
-    const genSection = document.getElementById('section-generator');
-    const vaultSection = document.getElementById('section-vault');
-    const genTab = document.getElementById('tab-gen');
-    const vaultTab = document.getElementById('tab-vault');
+    const sections = ['generator', 'vault', 'identity'];
+    const tabs = ['tab-gen', 'tab-vault', 'tab-identity'];
+    const terminalContainer = document.querySelector('.overflow-y-auto');
 
-    if (tabName === 'generator') {
-        genSection.classList.remove('hidden');
-        vaultSection.classList.add('hidden');
-        
-        // Style Active Tab
-        genTab.classList.add('tab-active');
-        genTab.classList.remove('tab-inactive');
-        // Style Inactive Tab
-        vaultTab.classList.remove('tab-active');
-        vaultTab.classList.add('tab-inactive');
-        
-    } else {
-        genSection.classList.add('hidden');
-        vaultSection.classList.remove('hidden');
+    // 1. Force Scroll to Top Immediately
+    terminalContainer.scrollTop = 0;
 
-        // Style Active Tab
-        vaultTab.classList.add('tab-active');
-        vaultTab.classList.remove('tab-inactive');
-        // Style Inactive Tab
-        genTab.classList.remove('tab-active');
-        genTab.classList.add('tab-inactive');
+    sections.forEach((sec, index) => {
+        const el = document.getElementById(`section-${sec}`);
+        const tabEl = document.getElementById(tabs[index]);
         
-        // Auto-focus the input line
-        setTimeout(() => document.getElementById('vault-input').focus(), 50);
-    }
+        if (sec === tabName) {
+            el.classList.remove('hidden');
+            tabEl.classList.add('tab-active');
+            tabEl.classList.remove('tab-inactive');
+            
+            // 2. Focus with "preventScroll" option
+            setTimeout(() => {
+                if (sec === 'vault') {
+                    const vInput = document.getElementById('vault-input');
+                    if (vInput) vInput.focus({ preventScroll: true });
+                }
+                if (sec === 'identity') {
+                    const rInput = document.getElementById('rsa-msg-in');
+                    if (rInput) rInput.focus({ preventScroll: true });
+                }
+            }, 50);
+            
+        } else {
+            el.classList.add('hidden');
+            tabEl.classList.remove('tab-active');
+            tabEl.classList.add('tab-inactive');
+        }
+    });
 }
 
 // --- PASSWORD GENERATOR ---
 async function generatePass(mode) {
     const outputField = document.getElementById('pass-output');
-    outputField.innerText = "calculating_entropy..."; // Use innerText for span
+    outputField.innerText = "calculating_entropy..."; 
     
     try {
         const response = await fetch('/api/generate-password', {
@@ -94,24 +121,25 @@ async function generatePass(mode) {
         const data = await response.json();
         outputField.innerText = data.password;
         
+        // Scroll fix
+        const terminalContainer = document.querySelector('.overflow-y-auto');
+        terminalContainer.scrollTop = terminalContainer.scrollHeight;
+
     } catch (error) {
         outputField.innerText = "Error: Connection Refused.";
     }
 }
 
-// --- ENCRYPTION VAULT ---
+// --- SYMMETRIC VAULT (AES) ---
 async function processVault(action) {
     const input = document.getElementById('vault-input').value;
     const passphrase = document.getElementById('vault-pass').value;
     const resultField = document.getElementById('vault-result');
-    
-    // 1. SELECT THE SCROLLABLE CONTAINER
-    // This matches the div in your HTML with "overflow-y-auto"
     const terminalContainer = document.querySelector('.overflow-y-auto');
 
     if (!input || !passphrase) {
         resultField.innerText = "[ERROR]: Input and Passphrase are mandatory.";
-        terminalContainer.scrollTop = terminalContainer.scrollHeight; // Scroll to error
+        terminalContainer.scrollTop = terminalContainer.scrollHeight;
         return;
     }
 
@@ -121,8 +149,6 @@ async function processVault(action) {
         : { ciphertext: input, passphrase: passphrase };
 
     resultField.innerText = "processing_crypto_engine...";
-    
-    // Scroll immediately to show processing status
     terminalContainer.scrollTop = terminalContainer.scrollHeight;
 
     try {
@@ -142,14 +168,8 @@ async function processVault(action) {
             resultField.innerText = data.result;
         }
 
-        // --- THE SCROLL FIX ---
-        // We set the scroll position (scrollTop) to the total height of the content (scrollHeight)
-        // This guarantees we are at the absolute bottom.
         setTimeout(() => {
-            terminalContainer.scrollTo({
-                top: terminalContainer.scrollHeight,
-                behavior: 'smooth'
-            });
+            terminalContainer.scrollTo({ top: terminalContainer.scrollHeight, behavior: 'smooth' });
         }, 100);
 
     } catch (error) {
@@ -158,14 +178,132 @@ async function processVault(action) {
     }
 }
 
+// --- ASYMMETRIC IDENTITY (RSA) ---
+async function generateIdentity() {
+    const pubField = document.getElementById('rsa-public');
+    const privField = document.getElementById('rsa-private');
+    const terminalContainer = document.querySelector('.overflow-y-auto');
+    
+    pubField.value = "Generating 2048-bit primes...";
+    privField.value = "Calculating coefficients...";
+    terminalContainer.scrollTop = terminalContainer.scrollHeight;
+
+    try {
+        const response = await fetch('/api/generate-keys', { method: 'POST' });
+        const data = await response.json();
+        
+        pubField.value = data.public;
+        privField.value = data.private;
+        
+        setTimeout(() => {
+            terminalContainer.scrollTo({ top: terminalContainer.scrollHeight, behavior: 'smooth' });
+        }, 100);
+
+    } catch (error) {
+        pubField.value = "Error: Keygen failed.";
+    }
+}
+
+async function processRSA(action) {
+    const resultField = document.getElementById('rsa-result');
+    const terminalContainer = document.querySelector('.overflow-y-auto');
+    
+    let payload = {};
+    let endpoint = '';
+
+    if (action === 'encrypt') {
+        const msg = document.getElementById('rsa-msg-in').value;
+        const key = document.getElementById('rsa-remote-key').value;
+        if (!msg || !key) {
+            resultField.innerText = "[ERROR]: Message and Remote Key required.";
+            terminalContainer.scrollTop = terminalContainer.scrollHeight;
+            return;
+        }
+        endpoint = '/api/rsa-encrypt';
+        payload = { message: msg, public_key: key };
+    } else {
+        const cipher = document.getElementById('rsa-cipher-in').value;
+        const myPrivKey = document.getElementById('rsa-private').value;
+        
+        if (!myPrivKey) {
+            resultField.innerText = "[ERROR]: You must Generate or Paste your Private Key first.";
+            terminalContainer.scrollTop = terminalContainer.scrollHeight;
+            return;
+        }
+        if (!cipher) {
+             resultField.innerText = "[ERROR]: No ciphertext provided.";
+             terminalContainer.scrollTop = terminalContainer.scrollHeight;
+             return;
+        }
+
+        endpoint = '/api/rsa-decrypt';
+        payload = { ciphertext: cipher, private_key: myPrivKey };
+    }
+
+    resultField.innerText = "processing_rsa_block...";
+    terminalContainer.scrollTop = terminalContainer.scrollHeight;
+
+    try {
+        const response = await fetch(endpoint, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+
+        const data = await response.json();
+        
+        if (data.error) {
+            resultField.innerText = "[ERROR]: " + data.error;
+        } else {
+            resultField.innerText = data.result;
+        }
+
+        setTimeout(() => {
+            terminalContainer.scrollTo({ top: terminalContainer.scrollHeight, behavior: 'smooth' });
+        }, 100);
+
+    } catch (error) {
+        resultField.innerText = "[SYSTEM_HALT]: " + error;
+    }
+}
+
 // --- UTILITY ---
 function copyToClipboard(elementId) {
     const element = document.getElementById(elementId);
-    // For input/textarea use .value, for div/span use .innerText
     const text = element.tagName === 'INPUT' || element.tagName === 'TEXTAREA' ? element.value : element.innerText;
     
     navigator.clipboard.writeText(text).then(() => {
-        // Optional: Flash the element or show a toast
         console.log("Copied to buffer");
     });
 }
+
+// --- CLOCK & STATUS BAR ---
+function updateClock() {
+    const now = new Date();
+    
+    // Arrays for formatting
+    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    
+    // Extract parts
+    const dayName = days[now.getDay()];
+    const dayNum = now.getDate();
+    const monthName = months[now.getMonth()];
+    
+    // Time with leading zeros
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    
+    // Construct String: "Thu 12 Feb 14:30"
+    const timeString = `${dayName} ${dayNum} ${monthName} ${hours}:${minutes}`;
+    
+    // Update DOM
+    const clockEl = document.getElementById('clock-display');
+    if (clockEl) {
+        clockEl.innerText = timeString;
+    }
+}
+
+// Start the clock immediately and update every second
+setInterval(updateClock, 1000);
+updateClock(); // Initial call to avoid 1s delay  
