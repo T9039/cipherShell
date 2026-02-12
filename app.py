@@ -116,6 +116,7 @@ def get_background():
         "monokai": ["pink", "green", "yellow"],
         "cyberpunk": ["pink", "cyan", "green", "purple"],
         "matrix": ["green", "dark"],
+        "oled": ["dark", "purple", "blue"],
     }
 
     allowed_folders = theme_map.get(theme, ["dark", "misc"])

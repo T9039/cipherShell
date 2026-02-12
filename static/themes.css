@@ -119,3 +119,15 @@
     --overlay: #003b00;
     --crust: #000000;
 }
+
+/* 11. OLED MIDNIGHT */
+[data-theme="oled"] {
+    --base: #0a0a0a;
+    --text: #ffffff;
+    --accent: #bb9af7; /* Deep Purple */
+    --accent2: #0db9d7; /* Cyber Cyan */
+    --green: #4fd6be;
+    --red: #ff757f;
+    --overlay: #2f334d;
+    --crust: #000000;
+}
