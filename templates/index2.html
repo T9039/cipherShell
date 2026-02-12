@@ -41,12 +41,8 @@
 
       /* Glassmorphism Terminal */
       .terminal-window {
-        background-color: rgba(
-          30,
-          30,
-          46,
-          0.85
-        ); /* Slightly more opaque for mobile readability */
+        /* CHANGED: 0.85 -> 0.70 to let the wallpaper shine through */
+        background-color: rgba(30, 30, 46, 0.7);
         backdrop-filter: blur(12px);
         border: 1px solid var(--overlay);
         box-shadow: 0 0 40px rgba(0, 0, 0, 0.5);
@@ -373,41 +369,52 @@
       <div
         class="bg-[#11111b] text-sm flex justify-between items-center select-none z-50 border-t border-[#6c7086]/30 shrink-0 h-14 md:h-auto"
       >
-        <div class="flex w-full md:w-auto">
-          <div
-            id="tab-gen"
-            onclick="switchTab('generator')"
-            class="cursor-pointer px-2 md:px-4 py-4 md:py-1 tab-active flex-1 md:flex-none flex justify-center gap-2 hover:bg-[#313244] transition-colors border-r border-[#6c7086]/20 md:border-none"
-          >
-            <span class="opacity-50 text-xs md:text-sm">1</span>
-            <span class="text-xs md:text-sm font-bold">GEN</span>
+        <div
+          class="bg-[#11111b] text-sm flex justify-between items-center select-none z-50 border-t border-[#6c7086]/30 shrink-0 pb-10 pt-3 md:pb-0 md:pt-0 md:py-1 md:h-auto"
+        >
+          <div class="flex w-full md:w-auto">
+            <div
+              id="tab-gen"
+              onclick="switchTab('generator')"
+              class="cursor-pointer px-2 md:px-4 tab-active flex-1 md:flex-none flex justify-center gap-2 hover:bg-[#313244] transition-colors border-r border-[#6c7086]/20 md:border-none py-2 md:py-1"
+            >
+              <span class="opacity-50 text-xs md:text-sm">1</span>
+              <span class="text-xs md:text-sm font-bold">GEN</span>
+            </div>
+
+            <div
+              id="tab-vault"
+              onclick="switchTab('vault')"
+              class="cursor-pointer px-2 md:px-4 tab-inactive flex-1 md:flex-none flex justify-center gap-2 hover:bg-[#313244] transition-colors border-r border-[#6c7086]/20 md:border-none py-2 md:py-1"
+            >
+              <span class="opacity-50 text-xs md:text-sm">2</span>
+              <span class="text-xs md:text-sm font-bold">VAULT</span>
+            </div>
+
+            <div
+              id="tab-identity"
+              onclick="switchTab('identity')"
+              class="cursor-pointer px-2 md:px-4 tab-inactive flex-1 md:flex-none flex justify-center gap-2 hover:bg-[#313244] transition-colors py-2 md:py-1"
+            >
+              <span class="opacity-50 text-xs md:text-sm">3</span>
+              <span class="text-xs md:text-sm font-bold">ID</span>
+            </div>
           </div>
 
-          <div
-            id="tab-vault"
-            onclick="switchTab('vault')"
-            class="cursor-pointer px-2 md:px-4 py-4 md:py-1 tab-inactive flex-1 md:flex-none flex justify-center gap-2 hover:bg-[#313244] transition-colors border-r border-[#6c7086]/20 md:border-none"
-          >
-            <span class="opacity-50 text-xs md:text-sm">2</span>
-            <span class="text-xs md:text-sm font-bold">VAULT</span>
-          </div>
-
-          <div
-            id="tab-identity"
-            onclick="switchTab('identity')"
-            class="cursor-pointer px-2 md:px-4 py-4 md:py-1 tab-inactive flex-1 md:flex-none flex justify-center gap-2 hover:bg-[#313244] transition-colors"
-          >
-            <span class="opacity-50 text-xs md:text-sm">3</span>
-            <span class="text-xs md:text-sm font-bold">ID</span>
+          <div class="px-4 text-[#a6e3a1] hidden md:block">
+            <span class="text-[#f38ba8]">♥</span> 100%
+            <span id="clock-display" class="ml-4 text-[#89b4fa] font-bold"
+              >Initializing...</span
+            >
           </div>
         </div>
 
-        <div class="px-4 text-[#a6e3a1] hidden md:block">
-          <span class="text-[#f38ba8]">♥</span> 100%
-          <span id="clock-display" class="ml-4 text-[#89b4fa] font-bold"
-            >Initializing...</span
-          >
-        </div>
+        <!-- <div class="px-4 text-[#a6e3a1] hidden md:block"> -->
+        <!--   <span class="text-[#f38ba8]">♥</span> 100% -->
+        <!--   <span id="clock-display" class="ml-4 text-[#89b4fa] font-bold" -->
+        <!--     >Initializing...</span -->
+        <!--   > -->
+        <!-- </div> -->
       </div>
     </div>
     <script src="{{ url_for('static', filename='script2.js') }}"></script>
