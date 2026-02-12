@@ -326,7 +326,7 @@ const themes = [
     { id: 'solarized',  name: 'Solarized',  colors: ['#268bd2', '#b58900'] },
     { id: 'monokai',    name: 'Monokai',    colors: ['#a6e22e', '#f92672'] },
     { id: 'cyberpunk',  name: 'Cyberpunk',  colors: ['#fcee0a', '#00ff9f'] },
-    { id: 'matrix',     name: 'Matrix',     colors: ['#00ff41', '#008f11'] }
+    { id: 'matrix',     name: 'Matrix',     colors: ['#00ff41', '#008f11'] },
     { id: 'oled', name: 'OLED Midnight', colors: ['#bb9af7', '#0db9d7'] }
 ];
 
