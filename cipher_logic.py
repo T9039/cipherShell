@@ -19,52 +19,39 @@ def generate_random_password(length=16):
     return password
 
 
-def generate_memorable_password(num_words=4):
-    """Generates a generic 'correct-horse-battery-staple' password."""
-    # For a real app, load the EFF Large Wordlist from a file.
-    # For this 3-hour MVP, we use a small hardcoded sample list to ensure it runs immediately.
-    # TODO: Download 'eff_large_wordlist.txt' and read it here for better entropy.
+def generate_memorable_password(num_words=5):
+    """
+    Generates a password using the EFF Large Wordlist.
+    Standard: 5 words from a pool of 7776 words = ~64 bits of entropy.
+    """
+    wordlist_path = "eff_large_wordlist.txt"
+    words = []
 
-    sample_wordlist = [
-        "account",
-        "balance",
-        "camera",
-        "danger",
-        "early",
-        "factor",
-        "garden",
-        "habit",
-        "iceberg",
-        "jacket",
-        "kangaroo",
-        "laptop",
-        "magnet",
-        "network",
-        "object",
-        "packet",
-        "quality",
-        "radio",
-        "saddle",
-        "tactical",
-        "umbrella",
-        "vacuum",
-        "waffle",
-        "xylophone",
-        "yellow",
-        "zebra",
-        "admit",
-        "below",
-        "crisis",
-        "debug",
-        "effort",
-        "finance",
-        "galaxy",
-        "harbor",
-        "image",
-    ]
+    try:
+        with open(wordlist_path, "r") as f:
+            for line in f:
+                # The EFF file format is "11111 word". We split by tab or space.
+                parts = line.strip().split()
+                if len(parts) >= 2:
+                    # The word is usually the second part (index 1)
+                    words.append(parts[1])
 
-    selected_words = [secrets.choice(sample_wordlist) for _ in range(num_words)]
-    return "-".join(selected_words)
+        if not words:
+            raise ValueError("Wordlist empty")
+
+        # Select 5 random words securely
+        selected_words = [secrets.choice(words) for _ in range(num_words)]
+
+        # Capitalize them for readability (e.g., Correct-Horse-Battery...)
+        # This is standard practice for memorable passwords.
+        selected_words = [w.capitalize() for w in selected_words]
+
+        return "-".join(selected_words)
+
+    except FileNotFoundError:
+        # Emergency Fallback if file is missing (so app doesn't crash)
+        fallback = ["Error", "Wordlist", "File", "Missing", "Download", "It"]
+        return "-".join(fallback[:num_words])
 
 
 # --- ENCRYPTION ENGINE ---
