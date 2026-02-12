@@ -209,11 +209,9 @@ async function processVault(action) {
 async function generateIdentity() {
     const pubField = document.getElementById('rsa-public');
     const privField = document.getElementById('rsa-private');
-    const terminalContainer = document.querySelector('.overflow-y-auto');
     
     pubField.value = "Generating 2048-bit primes...";
     privField.value = "Calculating coefficients...";
-    terminalContainer.scrollTop = terminalContainer.scrollHeight;
 
     try {
         const response = await fetch('/api/generate-keys', { method: 'POST' });
@@ -222,9 +220,15 @@ async function generateIdentity() {
         pubField.value = data.public;
         privField.value = data.private;
         
-        setTimeout(() => {
-            terminalContainer.scrollTo({ top: terminalContainer.scrollHeight, behavior: 'smooth' });
-        }, 100);
+        // setTimeout(() => {
+            // 2. THE Fix: Smart Scroll
+            // Instead of scrolling to the bottom, we target the PUBLIC KEY box.
+            const target = document.getElementById('rsa-public');
+            
+            // "center": Tries to put the element in the middle of the screen.
+            // "smooth": Glides there instead of jumping.
+            target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        // }, 100);
 
     } catch (error) {
         pubField.value = "Error: Keygen failed.";
