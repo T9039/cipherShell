@@ -106,11 +106,16 @@ def get_background():
 
     # 2. THEME MAPPING
     theme_map = {
-        "catppuccin": ["purple", "blue", "dark", "pink", "misc"],
-        "hacker": ["green", "dark"],
-        "nord": ["blue", "cyan", "white", "dark"],
+        "catppuccin": ["purple", "blue", "dark", "pink"],
         "dracula": ["purple", "red", "dark"],
-        "retro": ["orange", "yellow", "red", "misc"],
+        "nord": ["blue", "cyan", "white", "dark"],
+        "gruvbox": ["orange", "yellow", "red", "dark"],
+        "tokyo": ["blue", "purple", "dark"],
+        "onedark": ["blue", "purple", "dark"],
+        "solarized": ["cyan", "orange", "yellow"],
+        "monokai": ["pink", "green", "yellow"],
+        "cyberpunk": ["pink", "cyan", "green", "purple"],
+        "matrix": ["green", "dark"],
     }
 
     allowed_folders = theme_map.get(theme, ["dark", "misc"])
