@@ -338,61 +338,65 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // 2. Toggle Menu Visibility
-function toggleThemeMenu() {
-    const menu = document.getElementById('theme-menu');
+function toggleThemeMenu(suffix = '') {
+    const id = suffix ? `theme-menu-${suffix}` : 'theme-menu';
+    const menu = document.getElementById(id);
     menu.classList.toggle('hidden');
 }
 
 // 3. Build the Menu (Fastfetch Style)
 function buildThemeMenu() {
-    const container = document.querySelector('#theme-menu > div');
-    container.innerHTML = ''; // Clear existing
-
-    themes.forEach(theme => {
-        const btn = document.createElement('button');
-        btn.className = "w-full text-left px-4 py-2 hover:bg-[var(--overlay)]/20 flex items-center justify-between group transition-colors";
-        btn.onclick = () => {
-            applyTheme(theme.id);
-            toggleThemeMenu();
-        };
-
-        // Name
-        const nameSpan = document.createElement('span');
-        nameSpan.className = "text-xs font-bold text-[var(--text)] group-hover:text-[var(--accent)]";
-        nameSpan.innerText = theme.name;
-
-        // Color Blocks (Fastfetch style)
-        const blockContainer = document.createElement('div');
-        blockContainer.className = "flex gap-1";
+    // List of container IDs to populate
+    const containers = ['theme-menu', 'theme-menu-mob'];
+    
+    containers.forEach(containerId => {
+        const parent = document.querySelector(`#${containerId} > div`);
+        if (!parent) return; // Skip if mobile element isn't in DOM yet
         
-        theme.colors.forEach(color => {
-            const block = document.createElement('div');
-            block.className = "w-3 h-3 rounded-sm";
-            block.style.backgroundColor = color;
-            blockContainer.appendChild(block);
-        });
+        parent.innerHTML = ''; 
 
-        btn.appendChild(nameSpan);
-        btn.appendChild(blockContainer);
-        container.appendChild(btn);
+        themes.forEach(theme => {
+            const btn = document.createElement('button');
+            btn.className = "w-full text-left px-4 py-2 hover:bg-[var(--overlay)] flex items-center justify-between group transition-colors";
+            btn.onclick = () => {
+                applyTheme(theme.id);
+                toggleThemeMenu(containerId.includes('mob') ? 'mob' : '');
+            };
+
+            const nameSpan = document.createElement('span');
+            nameSpan.className = "text-[10px] font-bold text-[var(--text)]";
+            nameSpan.innerText = theme.name;
+
+            const blockContainer = document.createElement('div');
+            blockContainer.className = "flex gap-1";
+            theme.colors.forEach(color => {
+                const block = document.createElement('div');
+                block.className = "w-2 h-2 rounded-sm";
+                block.style.backgroundColor = color;
+                blockContainer.appendChild(block);
+            });
+
+            btn.appendChild(nameSpan);
+            btn.appendChild(blockContainer);
+            parent.appendChild(btn);
+        });
     });
 }
 
 // 4. Apply Theme Logic
 function applyTheme(themeId) {
-    // Set the data-theme attribute for CSS
     document.documentElement.setAttribute('data-theme', themeId);
-    
-    // Save to local storage for next visit
     localStorage.setItem('cipherTheme', themeId);
     
-    // Update the UI label
     const themeObj = themes.find(t => t.id === themeId);
     if(themeObj) {
-        document.getElementById('current-theme-label').innerText = themeObj.name;
+        // Update both desktop and mobile labels
+        if(document.getElementById('current-theme-label'))
+            document.getElementById('current-theme-label').innerText = themeObj.name;
+        if(document.getElementById('current-theme-label-mob'))
+            document.getElementById('current-theme-label-mob').innerText = themeObj.name;
     }
     
-    // FETCH BACKGROUND: Now handled centrally here
     updateBackground(themeId);
 }
 
