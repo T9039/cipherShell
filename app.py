@@ -96,23 +96,45 @@ def rsa_decrypt():
 
 @app.route("/api/background")
 def get_background():
-    # 1. Get the requested theme (Defaults to 'catppuccin' for now)
+    # 1. SETUP ABSOLUTE PATHS
+    # Find where app.py is located on the server
+    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+    # Construct the full path to the backgrounds folder
+    bg_root_path = os.path.join(BASE_DIR, "static", "backgrounds")
+
     theme = request.args.get("theme", "catppuccin")
 
-    # 2. THEME DEFINITIONS (The Logic)
-    # This maps a "Theme Name" to the "Folders" created by your rice_sorter script.
+    # 2. THEME MAPPING
     theme_map = {
-        "catppuccin": ["purple", "blue", "dark", "pink", "misc"],  # Cool & Cozy
-        "hacker": ["green", "dark"],  # Matrix Vibes
-        "nord": ["blue", "cyan", "white", "dark"],  # Icy & Clean
-        "dracula": ["purple", "red", "dark"],  # Vampire Vibes
-        "retro": ["orange", "yellow", "red", "misc"],  # Synthwave/Sunset
+        "catppuccin": ["purple", "blue", "dark", "pink", "misc"],
+        "hacker": ["green", "dark"],
+        "nord": ["blue", "cyan", "white", "dark"],
+        "dracula": ["purple", "red", "dark"],
+        "retro": ["orange", "yellow", "red", "misc"],
     }
 
-    # 3. Get allowed folders for this theme
-    # Fallback to ['dark'] if the theme name isn't found
     allowed_folders = theme_map.get(theme, ["dark", "misc"])
+    candidates = []
 
+    # 3. SEARCH FOR FILES
+    for folder in allowed_folders:
+        # Absolute path for OS to find the folder (e.g., /home/LeoT/cipherShell/static/backgrounds/purple)
+        folder_path = os.path.join(bg_root_path, folder)
+
+        if os.path.exists(folder_path):
+            files = os.listdir(folder_path)
+            for img in files:
+                if img.lower().endswith((".jpg", ".png", ".jpeg", ".webp")):
+                    # 4. CONSTRUCT BROWSER URL
+                    # We found the file at: /home/LeoT/.../static/backgrounds/purple/img.jpg
+                    # Browser needs: /static/backgrounds/purple/img.jpg
+                    url_path = f"/static/backgrounds/{folder}/{img}"
+                    candidates.append(url_path)
+
+    if candidates:
+        return jsonify({"url": random.choice(candidates)})
+    else:
+        return jsonify({"url": ""})
     # 4. Find all matching images
     base_folder = os.path.join("static", "backgrounds")
     candidates = []
