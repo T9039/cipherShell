@@ -1,0 +1,121 @@
+/* static/themes.css */
+
+/* 1. CATPPUCCIN (Default) */
+:root, [data-theme="catppuccin"] {
+    --base: #1e1e2e;
+    --text: #cdd6f4;
+    --accent: #cba6f7; /* Mauve */
+    --accent2: #89b4fa; /* Blue */
+    --green: #a6e3a1;
+    --red: #f38ba8;
+    --overlay: #6c7086;
+    --crust: #11111b;
+}
+
+/* 2. DRACULA */
+[data-theme="dracula"] {
+    --base: #282a36;
+    --text: #f8f8f2;
+    --accent: #ff79c6; /* Pink */
+    --accent2: #bd93f9; /* Purple */
+    --green: #50fa7b;
+    --red: #ff5555;
+    --overlay: #6272a4;
+    --crust: #21222c;
+}
+
+/* 3. NORD */
+[data-theme="nord"] {
+    --base: #2e3440;
+    --text: #d8dee9;
+    --accent: #88c0d0; /* Cyan */
+    --accent2: #81a1c1; /* Blue */
+    --green: #a3be8c;
+    --red: #bf616a;
+    --overlay: #4c566a;
+    --crust: #242933;
+}
+
+/* 4. GRUVBOX DARK */
+[data-theme="gruvbox"] {
+    --base: #282828;
+    --text: #ebdbb2;
+    --accent: #d79921; /* Yellow */
+    --accent2: #fe8019; /* Orange */
+    --green: #98971a;
+    --red: #cc241d;
+    --overlay: #928374;
+    --crust: #1d2021;
+}
+
+/* 5. TOKYO NIGHT */
+[data-theme="tokyo"] {
+    --base: #1a1b26;
+    --text: #a9b1d6;
+    --accent: #7aa2f7; /* Blue */
+    --accent2: #bb9af7; /* Purple */
+    --green: #9ece6a;
+    --red: #f7768e;
+    --overlay: #565f89;
+    --crust: #16161e;
+}
+
+/* 6. ONE DARK (Atom) */
+[data-theme="onedark"] {
+    --base: #282c34;
+    --text: #abb2bf;
+    --accent: #61afef; /* Blue */
+    --accent2: #c678dd; /* Purple */
+    --green: #98c379;
+    --red: #e06c75;
+    --overlay: #5c6370;
+    --crust: #21252b;
+}
+
+/* 7. SOLARIZED DARK */
+[data-theme="solarized"] {
+    --base: #002b36;
+    --text: #839496;
+    --accent: #268bd2; /* Blue */
+    --accent2: #b58900; /* Yellow */
+    --green: #859900;
+    --red: #dc322f;
+    --overlay: #586e75;
+    --crust: #073642;
+}
+
+/* 8. MONOKAI */
+[data-theme="monokai"] {
+    --base: #272822;
+    --text: #f8f8f2;
+    --accent: #a6e22e; /* Green */
+    --accent2: #f92672; /* Pink */
+    --green: #a6e22e;
+    --red: #f92672;
+    --overlay: #75715e;
+    --crust: #1e1f1c;
+}
+
+/* 9. CYBERPUNK (Neon) */
+[data-theme="cyberpunk"] {
+    --base: #0b0c15; /* Near Black */
+    --text: #e0e0e0;
+    --accent: #fcee0a; /* Neon Yellow */
+    --accent2: #00ff9f; /* Neon Green */
+    --green: #00ff9f;
+    --red: #ff003c;
+    --overlay: #38394e;
+    --crust: #000000;
+}
+
+/* 10. MATRIX (Hacker) */
+[data-theme="matrix"] {
+    --base: #0d0208;
+    --text: #00ff41;
+    --accent: #008f11; /* Dark Green */
+    --accent2: #003b00; /* Darker Green */
+    --green: #00ff41;
+    --red: #ff0000; /* System Error Red */
+    --overlay: #003b00;
+    --crust: #000000;
+}
