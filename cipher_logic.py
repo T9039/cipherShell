@@ -25,11 +25,18 @@ def generate_memorable_password(num_words=5):
     Generates a password using the EFF Large Wordlist.
     Standard: 5 words from a pool of 7776 words = ~64 bits of entropy.
     """
-    wordlist_path = "eff_large_wordlist.txt"
-    words = []
+    # Get the directory where app.py lives
+    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+    # Build the full path to the wordlist
+    WORDLIST_PATH = os.path.join(BASE_DIR, "eff_large_wordlist.txt")
+
+    # Open using the full path
+    with open(WORDLIST_PATH, "r") as f:
+        words = f.read().splitlines()
+        words = []
 
     try:
-        with open(wordlist_path, "r") as f:
+        with open(WORDLIST_PATH, "r") as f:
             for line in f:
                 # The EFF file format is "11111 word". We split by tab or space.
                 parts = line.strip().split()
