@@ -4,7 +4,8 @@ import secrets
 import string
 
 from cryptography.fernet import Fernet
-from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives import hashes, serialization
+from cryptography.hazmat.primitives.asymmetric import padding, rsa
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 
 # --- PASSWORD GENERATOR ---
@@ -52,6 +53,92 @@ def generate_memorable_password(num_words=5):
         # Emergency Fallback if file is missing (so app doesn't crash)
         fallback = ["Error", "Wordlist", "File", "Missing", "Download", "It"]
         return "-".join(fallback[:num_words])
+
+
+# --- ASYMMETRIC ENGINE (RSA) ---
+
+
+def generate_keypair():
+    """
+    Generates a 2048-bit RSA Keypair.
+    """
+    private_key = rsa.generate_private_key(
+        public_exponent=65537,
+        key_size=2048,
+    )
+
+    pem_private = private_key.private_bytes(
+        encoding=serialization.Encoding.PEM,
+        format=serialization.PrivateFormat.PKCS8,
+        encryption_algorithm=serialization.NoEncryption(),
+    )
+
+    pem_public = private_key.public_key().public_bytes(
+        encoding=serialization.Encoding.PEM,
+        format=serialization.PublicFormat.SubjectPublicKeyInfo,
+    )
+
+    return pem_private.decode("utf-8"), pem_public.decode("utf-8")
+
+
+def encrypt_with_public_key(message: str, public_key_str: str) -> str:
+    """
+    Encrypts a message using a Public Key.
+    """
+    try:
+        # 1. Load the key
+        public_key = serialization.load_pem_public_key(public_key_str.encode("utf-8"))
+
+        # 2. VITAL Fix: Check if it is actually an RSA key
+        if not isinstance(public_key, rsa.RSAPublicKey):
+            return "Error: The provided key is not a valid RSA Public Key."
+
+        # 3. Encrypt
+        ciphertext = public_key.encrypt(
+            message.encode("utf-8"),
+            padding.OAEP(
+                mgf=padding.MGF1(algorithm=hashes.SHA256()),
+                algorithm=hashes.SHA256(),
+                label=None,
+            ),
+        )
+        return base64.b64encode(ciphertext).decode("utf-8")
+
+    except Exception as e:
+        return f"Error: Encryption failed. {str(e)}"
+
+
+def decrypt_with_private_key(ciphertext_b64: str, private_key_str: str) -> str:
+    """
+    Decrypts a message using a Private Key.
+    """
+    try:
+        # 1. Load the key
+        private_key = serialization.load_pem_private_key(
+            private_key_str.encode("utf-8"), password=None
+        )
+
+        # 2. VITAL Fix: Check if it is actually an RSA key
+        if not isinstance(private_key, rsa.RSAPrivateKey):
+            return "Error: The provided key is not a valid RSA Private Key."
+
+        # 3. Decrypt
+        ciphertext = base64.b64decode(ciphertext_b64)
+
+        plaintext = private_key.decrypt(
+            ciphertext,
+            padding.OAEP(
+                mgf=padding.MGF1(algorithm=hashes.SHA256()),
+                algorithm=hashes.SHA256(),
+                label=None,
+            ),
+        )
+        return plaintext.decode("utf-8")
+
+    except ValueError:
+        return "Error: Key mismatch or corrupted data."
+    except Exception as e:
+        return f"Error: {str(e)}"
 
 
 # --- ENCRYPTION ENGINE ---
