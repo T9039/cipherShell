@@ -103,11 +103,11 @@ function switchTab(tabName) {
     Object.keys(mobileTabs).forEach(t => {
         const el = document.getElementById(mobileTabs[t]);
         if (t === tabName) {
-            // Active Mobile Style (Solid Color, Connected)
-            el.className = "flex-1 py-2 text-center text-xs font-bold rounded-t-lg cursor-pointer transition-all border-t border-l border-r border-[#6c7086]/50 bg-[#cba6f7] text-[#1e1e2e] translate-y-[1px]";
+            // ACTIVE: Use var(--accent) for background and var(--base) for text
+            el.className = "flex-1 py-2 text-center text-xs font-bold rounded-t-lg cursor-pointer transition-all border-t border-l border-r border-[var(--overlay)]/50 bg-[var(--accent)] text-[var(--base)] translate-y-[1px]";
         } else {
-            // Inactive Mobile Style (Dark, Receded)
-            el.className = "flex-1 py-2 text-center text-xs font-bold rounded-t-lg cursor-pointer transition-all border-t border-l border-r border-transparent text-[#6c7086] hover:bg-[#313244] bg-[#11111b]/50";
+            // INACTIVE: Use var(--overlay) for text and var(--crust) for background
+            el.className = "flex-1 py-2 text-center text-xs font-bold rounded-t-lg cursor-pointer transition-all border-t border-l border-r border-transparent text-[var(--overlay)] hover:bg-[var(--overlay)] bg-[var(--crust)]/50";
         }
     });
 } 
@@ -327,6 +327,7 @@ const themes = [
     { id: 'monokai',    name: 'Monokai',    colors: ['#a6e22e', '#f92672'] },
     { id: 'cyberpunk',  name: 'Cyberpunk',  colors: ['#fcee0a', '#00ff9f'] },
     { id: 'matrix',     name: 'Matrix',     colors: ['#00ff41', '#008f11'] }
+    { id: 'oled', name: 'OLED Midnight', colors: ['#bb9af7', '#0db9d7'] }
 ];
 
 // 1. Initialize Theme on Load
