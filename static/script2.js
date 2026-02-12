@@ -1,6 +1,22 @@
 // --- INITIALIZATION ---
 document.addEventListener('DOMContentLoaded', () => {
     console.log("CipherShell Environment Loaded.");
+    
+    // --- SMART BACKGROUND LOADER ---
+    fetch('/api/background?theme=catppuccin')
+        .then(response => response.json())
+        .then(data => {
+            console.log("here")
+            if (data.url) {
+                // Apply to body
+                console.log("here")
+
+                document.body.style.backgroundImage = `url('${data.url}')`;
+                document.body.style.backgroundSize = "cover";
+                document.body.style.backgroundPosition = "center";
+            }
+        })
+        .catch(err => console.log("Background load failed, using CSS default."));
 });
 
 // --- KEYBOARD SHORTCUTS (The Brains) ---
