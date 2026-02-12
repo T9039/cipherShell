@@ -86,41 +86,52 @@ document.addEventListener('keydown', (e) => {
 
 // --- TAB SWITCHING LOGIC ---
 function switchTab(tabName) {
-    const sections = ['generator', 'vault', 'identity'];
-    const tabs = ['tab-gen', 'tab-vault', 'tab-identity'];
-    const terminalContainer = document.querySelector('.overflow-y-auto');
+    // 1. Hide all content sections
+    ['generator', 'vault', 'identity'].forEach(t => {
+        document.getElementById(`section-${t}`).classList.add('hidden');
+    });
 
-    // 1. Force Scroll to Top Immediately
-    terminalContainer.scrollTop = 0;
+    // 2. Show selected content
+    document.getElementById(`section-${tabName}`).classList.remove('hidden');
 
-    sections.forEach((sec, index) => {
-        const el = document.getElementById(`section-${sec}`);
-        const tabEl = document.getElementById(tabs[index]);
-        
-        if (sec === tabName) {
-            el.classList.remove('hidden');
-            tabEl.classList.add('tab-active');
-            tabEl.classList.remove('tab-inactive');
-            
-            // 2. Focus with "preventScroll" option
-            setTimeout(() => {
-                if (sec === 'vault') {
-                    const vInput = document.getElementById('vault-input');
-                    if (vInput) vInput.focus({ preventScroll: true });
-                }
-                if (sec === 'identity') {
-                    const rInput = document.getElementById('rsa-msg-in');
-                    if (rInput) rInput.focus({ preventScroll: true });
-                }
-            }, 50);
-            
+    // 3. Update DESKTOP Tabs (Bottom)
+    const desktopTabs = {
+        'generator': 'tab-gen',
+        'vault': 'tab-vault',
+        'identity': 'tab-identity'
+    };
+
+    Object.keys(desktopTabs).forEach(t => {
+        const el = document.getElementById(desktopTabs[t]);
+        if (t === tabName) {
+            // Active Desktop Style
+            el.classList.remove('tab-inactive');
+            el.classList.add('tab-active');
         } else {
-            el.classList.add('hidden');
-            tabEl.classList.remove('tab-active');
-            tabEl.classList.add('tab-inactive');
+            // Inactive Desktop Style
+            el.classList.remove('tab-active');
+            el.classList.add('tab-inactive');
         }
     });
-}
+
+    // 4. Update MOBILE Tabs (Top - Windows Terminal Style)
+    const mobileTabs = {
+        'generator': 'mob-tab-gen',
+        'vault': 'mob-tab-vault',
+        'identity': 'mob-tab-identity'
+    };
+
+    Object.keys(mobileTabs).forEach(t => {
+        const el = document.getElementById(mobileTabs[t]);
+        if (t === tabName) {
+            // Active Mobile Style (Solid Color, Connected)
+            el.className = "flex-1 py-2 text-center text-xs font-bold rounded-t-lg cursor-pointer transition-all border-t border-l border-r border-[#6c7086]/50 bg-[#cba6f7] text-[#1e1e2e] translate-y-[1px]";
+        } else {
+            // Inactive Mobile Style (Dark, Receded)
+            el.className = "flex-1 py-2 text-center text-xs font-bold rounded-t-lg cursor-pointer transition-all border-t border-l border-r border-transparent text-[#6c7086] hover:bg-[#313244] bg-[#11111b]/50";
+        }
+    });
+} 
 
 // --- PASSWORD GENERATOR ---
 async function generatePass(mode) {

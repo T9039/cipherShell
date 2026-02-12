@@ -138,6 +138,31 @@
         </div>
 
         <div
+          class="flex md:hidden w-full mb-6 border-b border-[#6c7086]/50 gap-1 select-none items-end"
+        >
+          <div
+            id="mob-tab-gen"
+            onclick="switchTab('generator')"
+            class="flex-1 py-2 text-center text-xs font-bold rounded-t-lg cursor-pointer transition-all border-t border-l border-r border-[#6c7086]/50 bg-[#cba6f7] text-[#1e1e2e] translate-y-[1px]"
+          >
+            /GEN
+          </div>
+          <div
+            id="mob-tab-vault"
+            onclick="switchTab('vault')"
+            class="flex-1 py-2 text-center text-xs font-bold rounded-t-lg cursor-pointer transition-all border-t border-l border-r border-transparent text-[#6c7086] hover:bg-[#313244] bg-[#11111b]/50"
+          >
+            /VAULT
+          </div>
+          <div
+            id="mob-tab-identity"
+            onclick="switchTab('identity')"
+            class="flex-1 py-2 text-center text-xs font-bold rounded-t-lg cursor-pointer transition-all border-t border-l border-r border-transparent text-[#6c7086] hover:bg-[#313244] bg-[#11111b]/50"
+          >
+            /IDENTITY
+          </div>
+        </div>
+        <div
           id="section-generator"
           class="flex-1 flex flex-col justify-start md:justify-center items-start space-y-6"
         >
@@ -366,49 +391,29 @@
           </div>
         </div>
       </div>
-      <div
-        class="bg-[#11111b] text-sm flex justify-between items-center select-none z-50 border-t border-[#6c7086]/30 shrink-0 h-14 md:h-auto"
-      >
-        <div
-          class="bg-[#11111b] text-sm flex justify-between items-center select-none z-50 border-t border-[#6c7086]/30 shrink-0 pb-10 pt-3 md:pb-0 md:pt-0 md:py-1 md:h-auto"
-        >
-          <div class="flex w-full md:w-auto">
-            <div
-              id="tab-gen"
-              onclick="switchTab('generator')"
-              class="cursor-pointer px-2 md:px-4 tab-active flex-1 md:flex-none flex justify-center gap-2 hover:bg-[#313244] transition-colors border-r border-[#6c7086]/20 md:border-none py-2 md:py-1"
-            >
-              <span class="opacity-50 text-xs md:text-sm">1</span>
-              <span class="text-xs md:text-sm font-bold">GEN</span>
-            </div>
 
-            <div
-              id="tab-vault"
-              onclick="switchTab('vault')"
-              class="cursor-pointer px-2 md:px-4 tab-inactive flex-1 md:flex-none flex justify-center gap-2 hover:bg-[#313244] transition-colors border-r border-[#6c7086]/20 md:border-none py-2 md:py-1"
-            >
-              <span class="opacity-50 text-xs md:text-sm">2</span>
-              <span class="text-xs md:text-sm font-bold">VAULT</span>
-            </div>
-
-            <div
-              id="tab-identity"
-              onclick="switchTab('identity')"
-              class="cursor-pointer px-2 md:px-4 tab-inactive flex-1 md:flex-none flex justify-center gap-2 hover:bg-[#313244] transition-colors py-2 md:py-1"
-            >
-              <span class="opacity-50 text-xs md:text-sm">3</span>
-              <span class="text-xs md:text-sm font-bold">ID</span>
-            </div>
+      <div class="hidden md:flex bg-[#11111b] text-sm justify-between select-none z-50 border-t border-[#6c7086]/30 shrink-0">
+          
+          <div class="flex flex-1 md:flex-none md:w-auto">
+              <div id="tab-gen" onclick="switchTab('generator')" class="cursor-pointer px-4 tab-active flex gap-2 hover:bg-[#313244] transition-colors items-center py-1">
+                  <span class="opacity-50">1</span>
+                  <span>GEN</span>
+              </div>
+              <div id="tab-vault" onclick="switchTab('vault')" class="cursor-pointer px-4 tab-inactive flex gap-2 hover:bg-[#313244] transition-colors items-center py-1">
+                  <span class="opacity-50">2</span>
+                  <span>VAULT</span>
+              </div>
+              <div id="tab-identity" onclick="switchTab('identity')" class="cursor-pointer px-4 tab-inactive flex gap-2 hover:bg-[#313244] transition-colors items-center py-1">
+                  <span class="opacity-50">3</span>
+                  <span>ID</span>
+              </div>
           </div>
-
-          <div class="px-4 text-[#a6e3a1] hidden md:block">
-            <span class="text-[#f38ba8]">♥</span> 100%
-            <span id="clock-display" class="ml-4 text-[#89b4fa] font-bold"
-              >Initializing...</span
-            >
+          
+          <div class="px-4 text-[#a6e3a1] flex items-center py-1">
+              <span class="text-[#f38ba8] mr-1">♥</span> 100% 
+              <span id="clock-display" class="ml-4 text-[#89b4fa] font-bold">Initializing...</span>
           </div>
-        </div>
-
+      </div>
         <!-- <div class="px-4 text-[#a6e3a1] hidden md:block"> -->
         <!--   <span class="text-[#f38ba8]">♥</span> 100% -->
         <!--   <span id="clock-display" class="ml-4 text-[#89b4fa] font-bold" -->
