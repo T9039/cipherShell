@@ -1,1 +1,8 @@
 env/
+migrate_colors.sh
+.session.vim
+index2_themed.html
+
+#Python cache files
+__pycache__/
+*.pyc
