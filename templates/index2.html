@@ -1,0 +1,263 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CipherShell // Arch_Rice_Edition</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap");
+
+      /* --- CATPPUCCIN MOCHA PALETTE --- */
+      :root {
+        --base: #1e1e2e;
+        --text: #cdd6f4;
+        --mauve: #cba6f7;
+        --blue: #89b4fa;
+        --red: #f38ba8;
+        --green: #a6e3a1;
+        --overlay: #6c7086;
+        --crust: #11111b;
+      }
+
+      body {
+        font-family: "JetBrains Mono", monospace;
+        background-color: #000;
+        /* Simple "Wallpaper" gradient */
+        background-image: linear-gradient(
+          to bottom right,
+          #0f0c29,
+          #302b63,
+          #24243e
+        );
+        color: var(--text);
+        overflow: hidden; /* No scrollbars on body */
+      }
+
+      /* Glassmorphism Terminal */
+      .terminal-window {
+        background-color: rgba(
+          30,
+          30,
+          46,
+          0.75
+        ); /* Catppuccin Base with Opacity */
+        backdrop-filter: blur(8px);
+        border: 1px solid var(--overlay);
+        box-shadow: 0 0 40px rgba(0, 0, 0, 0.5);
+      }
+
+      /* Blinking Block Cursor */
+      .cursor-block {
+        display: inline-block;
+        width: 10px;
+        height: 1.2em;
+        background-color: var(--text);
+        animation: blink 1s step-end infinite;
+        vertical-align: text-bottom;
+      }
+      @keyframes blink {
+        50% {
+          opacity: 0;
+        }
+      }
+
+      /* Remove default input styles to look like CLI */
+      .cli-input {
+        background: transparent;
+        border: none;
+        color: var(--green);
+        outline: none;
+        width: 100%;
+        font-family: inherit;
+      }
+      .cli-input::placeholder {
+        color: var(--overlay);
+        opacity: 0.5;
+      }
+
+      /* Hide Scrollbar but keep functionality */
+      .no-scrollbar::-webkit-scrollbar {
+        display: none;
+      }
+      .no-scrollbar {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+      }
+
+      /* Tmux Active Tab Style */
+      .tab-active {
+        background-color: var(--mauve);
+        color: var(--base);
+        font-weight: bold;
+      }
+      .tab-inactive {
+        color: var(--overlay);
+      }
+    </style>
+  </head>
+  <body class="h-screen w-screen flex items-center justify-center p-4">
+    <div
+      class="terminal-window w-full max-w-5xl h-[85vh] flex flex-col rounded-lg overflow-hidden relative"
+    >
+      <div
+        class="bg-[#11111b] p-2 text-center text-xs text-[#6c7086] border-b border-[#6c7086]/30 select-none"
+      >
+        user@archlinux: ~/ciphershell (zsh)
+      </div>
+
+      <div class="flex-1 p-6 overflow-y-auto no-scrollbar flex flex-col">
+        <pre
+          class="text-[#cba6f7] font-bold text-xs md:text-sm mb-6 leading-tight select-none"
+        >
+  ____ _       _                 ____  _          _ _ 
+ / ___(_)_ __ | |__   ___ _ __  / ___|| |__   ___| | |
+| |   | | '_ \| '_ \ / _ \ '__| \___ \| '_ \ / _ \ | |
+| |___| | |_) | | | |  __/ |     ___) | | | |  __/ | |
+ \____|_| .__/|_| |_|\___|_|    |____/|_| |_|\___|_|_|
+        |_|                                           
+            </pre
+        >
+
+        <div class="mb-8 text-sm text-[#bac2de]">
+          <p>> Welcome to CipherShell v1.0.2</p>
+          <p>> System integrity: <span class="text-[#a6e3a1]">OK</span></p>
+          <p>
+            > Shortcuts: <span class="text-[#f38ba8]">Alt+1</span> (Gen),
+            <span class="text-[#f38ba8]">Alt+2</span> (Vault)
+          </p>
+          <div class="border-b border-[#6c7086]/30 my-4"></div>
+        </div>
+
+        <div
+          id="section-generator"
+          class="flex-1 flex flex-col justify-center items-start space-y-6"
+        >
+          <div class="w-full">
+            <p class="text-[#89b4fa] mb-2">// PASSWORD_GENERATOR</p>
+            <p class="text-sm text-[#6c7086] mb-4">
+              Select entropy method to generate secure token.
+            </p>
+
+            <div class="flex gap-4 mb-6 text-sm">
+              <button
+                onclick="generatePass('random')"
+                class="hover:text-white text-[#a6e3a1] transition-colors"
+              >
+                [ F1: Random_Mode ]
+              </button>
+              <button
+                onclick="generatePass('memorable')"
+                class="hover:text-white text-[#a6e3a1] transition-colors"
+              >
+                [ F2: Memorable_Mode ]
+              </button>
+            </div>
+
+            <div class="bg-[#11111b]/50 p-4 border-l-2 border-[#cba6f7] w-full">
+              <span class="text-[#6c7086]">$ output: </span>
+              <span id="pass-output" class="text-xl text-[#cdd6f4] break-all"
+                >_waiting_for_input</span
+              >
+              <span class="cursor-block"></span>
+            </div>
+            <button
+              onclick="copyToClipboard('pass-output')"
+              class="mt-2 text-xs text-[#6c7086] hover:text-[#cdd6f4]"
+            >
+              [ Copy to Clipboard ]
+            </button>
+          </div>
+        </div>
+
+        <div id="section-vault" class="hidden flex-1 flex flex-col space-y-6">
+          <p class="text-[#f38ba8] mb-2">// SECURE_VAULT (AES-128)</p>
+
+          <div class="space-y-4 w-full max-w-3xl">
+            <div class="flex items-start gap-2">
+              <span class="text-[#a6e3a1] whitespace-nowrap"
+                >user@vault:~/msg $</span
+              >
+              <textarea
+                id="vault-input"
+                rows="3"
+                class="cli-input resize-none"
+                placeholder="Enter plaintext or ciphertext here..."
+              ></textarea>
+            </div>
+
+            <div class="flex items-center gap-2">
+              <span class="text-[#a6e3a1] whitespace-nowrap"
+                >user@vault:~/key $</span
+              >
+              <input
+                type="password"
+                id="vault-pass"
+                class="cli-input"
+                placeholder="Enter passphrase..."
+              />
+            </div>
+
+            <div class="pt-4 flex gap-6 text-sm">
+              <button
+                onclick="processVault('encrypt')"
+                class="text-[#89b4fa] hover:underline hover:text-white"
+              >
+                -> ENCRYPT_DATA (Ctrl+E)
+              </button>
+              <button
+                onclick="processVault('decrypt')"
+                class="text-[#f38ba8] hover:underline hover:text-white"
+              >
+                <- DECRYPT_DATA (Ctrl+D)
+              </button>
+            </div>
+
+            <div class="mt-6 border-t border-[#6c7086]/30 pt-4">
+              <div class="text-[#6c7086] text-sm mb-1">STDOUT >></div>
+              <div id="vault-result" class="text-[#cdd6f4] break-all font-mono">
+                // Process output will appear here...
+              </div>
+              <button
+                onclick="copyToClipboard('vault-result')"
+                class="mt-2 text-xs text-[#6c7086] hover:text-[#cdd6f4]"
+              >
+                [ Copy Output ]
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div
+        class="bg-[#11111b] text-sm flex justify-between items-center select-none"
+      >
+        <div class="flex">
+          <div
+            id="tab-gen"
+            onclick="switchTab('generator')"
+            class="cursor-pointer px-4 py-1 tab-active flex gap-2"
+          >
+            <span class="opacity-50">1</span>
+            <span>GENERATOR</span>
+          </div>
+          <div
+            id="tab-vault"
+            onclick="switchTab('vault')"
+            class="cursor-pointer px-4 py-1 tab-inactive flex gap-2"
+          >
+            <span class="opacity-50">2</span>
+            <span>VAULT</span>
+          </div>
+        </div>
+
+        <div class="px-4 text-[#a6e3a1] hidden sm:block">
+          <span class="text-[#f38ba8]">♥</span> 100%
+          <span class="ml-4 text-[#89b4fa]">Thu 12 Feb</span>
+        </div>
+      </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='script2.js') }}"></script>
+  </body>
+</html>
