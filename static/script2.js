@@ -1,24 +1,3 @@
-// --- INITIALIZATION ---
-document.addEventListener('DOMContentLoaded', () => {
-    console.log("CipherShell Environment Loaded.");
-    
-    // --- SMART BACKGROUND LOADER ---
-    fetch('/api/background?theme=catppuccin')
-        .then(response => response.json())
-        .then(data => {
-            console.log("here")
-            if (data.url) {
-                // Apply to body
-                console.log("here")
-
-                document.body.style.backgroundImage = `url('${data.url}')`;
-                document.body.style.backgroundSize = "cover";
-                document.body.style.backgroundPosition = "center";
-            }
-        })
-        .catch(err => console.log("Background load failed, using CSS default."));
-});
-
 // --- KEYBOARD SHORTCUTS (The Brains) ---
 document.addEventListener('keydown', (e) => {
     
@@ -335,6 +314,116 @@ function updateClock() {
     }
 }
 
-// Start the clock immediately and update every second
-setInterval(updateClock, 1000);
-updateClock(); // Initial call to avoid 1s delay  
+// --- THEME SYSTEM ---
+
+const themes = [
+    { id: 'catppuccin', name: 'Catppuccin', colors: ['#cba6f7', '#89b4fa'] },
+    { id: 'dracula',    name: 'Dracula',    colors: ['#ff79c6', '#bd93f9'] },
+    { id: 'nord',       name: 'Nord',       colors: ['#88c0d0', '#81a1c1'] },
+    { id: 'gruvbox',    name: 'Gruvbox',    colors: ['#d79921', '#fe8019'] },
+    { id: 'tokyo',      name: 'Tokyo Night',colors: ['#7aa2f7', '#bb9af7'] },
+    { id: 'onedark',    name: 'One Dark',   colors: ['#61afef', '#c678dd'] },
+    { id: 'solarized',  name: 'Solarized',  colors: ['#268bd2', '#b58900'] },
+    { id: 'monokai',    name: 'Monokai',    colors: ['#a6e22e', '#f92672'] },
+    { id: 'cyberpunk',  name: 'Cyberpunk',  colors: ['#fcee0a', '#00ff9f'] },
+    { id: 'matrix',     name: 'Matrix',     colors: ['#00ff41', '#008f11'] }
+];
+
+// 1. Initialize Theme on Load
+document.addEventListener('DOMContentLoaded', () => {
+    const savedTheme = localStorage.getItem('cipherTheme') || 'catppuccin';
+    applyTheme(savedTheme);
+    buildThemeMenu();
+});
+
+// 2. Toggle Menu Visibility
+function toggleThemeMenu() {
+    const menu = document.getElementById('theme-menu');
+    menu.classList.toggle('hidden');
+}
+
+// 3. Build the Menu (Fastfetch Style)
+function buildThemeMenu() {
+    const container = document.querySelector('#theme-menu > div');
+    container.innerHTML = ''; // Clear existing
+
+    themes.forEach(theme => {
+        const btn = document.createElement('button');
+        btn.className = "w-full text-left px-4 py-2 hover:bg-[var(--overlay)]/20 flex items-center justify-between group transition-colors";
+        btn.onclick = () => {
+            applyTheme(theme.id);
+            toggleThemeMenu();
+        };
+
+        // Name
+        const nameSpan = document.createElement('span');
+        nameSpan.className = "text-xs font-bold text-[var(--text)] group-hover:text-[var(--accent)]";
+        nameSpan.innerText = theme.name;
+
+        // Color Blocks (Fastfetch style)
+        const blockContainer = document.createElement('div');
+        blockContainer.className = "flex gap-1";
+        
+        theme.colors.forEach(color => {
+            const block = document.createElement('div');
+            block.className = "w-3 h-3 rounded-sm";
+            block.style.backgroundColor = color;
+            blockContainer.appendChild(block);
+        });
+
+        btn.appendChild(nameSpan);
+        btn.appendChild(blockContainer);
+        container.appendChild(btn);
+    });
+}
+
+// 4. Apply Theme Logic
+function applyTheme(themeId) {
+    // Set the data-theme attribute for CSS
+    document.documentElement.setAttribute('data-theme', themeId);
+    
+    // Save to local storage for next visit
+    localStorage.setItem('cipherTheme', themeId);
+    
+    // Update the UI label
+    const themeObj = themes.find(t => t.id === themeId);
+    if(themeObj) {
+        document.getElementById('current-theme-label').innerText = themeObj.name;
+    }
+    
+    // FETCH BACKGROUND: Now handled centrally here
+    updateBackground(themeId);
+}
+
+// 5. Modified Background Fetcher
+function updateBackground(themeId) {
+    fetch(`/api/background?theme=${themeId}`)
+        .then(res => res.json())
+        .then(data => {
+            if(data.url) {
+                document.body.style.backgroundImage = `url('${data.url}')`;
+            }
+        });
+}
+
+
+// --- INITIALIZATION ---
+// Definition: The "Boot Sequence"
+function initializeApp() {
+    // 1. Start System Clock
+    updateClock();
+    setInterval(updateClock, 1000);
+
+    // 2. Initialize Theme System
+    const savedTheme = localStorage.getItem('cipherTheme') || 'catppuccin';
+    
+    // 3. Apply the Theme & Fetch Background
+    applyTheme(savedTheme); 
+    
+    // 4. Build the UI Menu
+    buildThemeMenu();
+
+    console.log(`CipherShell Initialized: ${savedTheme} mode active.`);
+}
+
+initializeApp();
