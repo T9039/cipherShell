@@ -8,20 +8,9 @@
     />
     <title>CipherShell</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='themes.css') }}">
     <style>
       @import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap");
-
-      /* --- CATPPUCCIN MOCHA PALETTE --- */
-      :root {
-        --base: #1e1e2e;
-        --text: #cdd6f4;
-        --mauve: #cba6f7;
-        --blue: #89b4fa;
-        --red: #f38ba8;
-        --green: #a6e3a1;
-        --overlay: #6c7086;
-        --crust: #11111b;
-      }
 
       body {
         font-family: "JetBrains Mono", monospace;
@@ -41,11 +30,10 @@
 
       /* Glassmorphism Terminal */
       .terminal-window {
-        /* CHANGED: 0.85 -> 0.70 to let the wallpaper shine through */
-        background-color: rgba(30, 30, 46, 0.7);
+        background-color: color-mix(in srgb, var(--base), transparent 30%);
         backdrop-filter: blur(12px);
-        border: 1px solid var(--overlay);
-        box-shadow: 0 0 40px rgba(0, 0, 0, 0.5);
+        border: 1px solid var(--overlay); /* Ensure this uses variable too! */
+        box-shadow: 0 0 40px rgba(0,0,0,0.5);
       }
 
       /* Blinking Block Cursor */
@@ -88,7 +76,7 @@
 
       /* Tmux Active/Inactive Tab Styles */
       .tab-active {
-        background-color: var(--mauve);
+        background-color: var(--accent);
         color: var(--base);
         font-weight: bold;
       }
@@ -102,7 +90,7 @@
       class="terminal-window w-full h-[100dvh] md:h-[85vh] md:max-w-5xl flex flex-col md:rounded-lg rounded-none overflow-hidden relative transition-all duration-300"
     >
       <div
-        class="bg-[#11111b] p-3 md:p-2 text-center text-xs text-[#6c7086] border-b border-[#6c7086]/30 select-none shrink-0"
+        class="bg-[var(--crust)] p-3 md:p-2 text-center text-xs text-[var(--overlay)] border-b border-[var(--overlay)] select-none shrink-0"
       >
         <span class="md:hidden">mobile@ciphershell: ~ (zsh)</span>
         <span class="hidden md:inline"
@@ -112,7 +100,7 @@
 
       <div class="flex-1 p-4 md:p-6 overflow-y-auto no-scrollbar flex flex-col">
         <pre
-          class="text-[#cba6f7] font-bold text-[8px] md:text-sm mb-4 leading-tight select-none whitespace-pre-wrap"
+          class="text-[var(--accent)] font-bold text-[8px] md:text-sm mb-4 leading-tight select-none whitespace-pre-wrap"
         >
   ____ _       _                 ____  _          _ _ 
  / ___(_)_ __ | |__   ___ _ __  / ___|| |__   ___| | |
@@ -123,41 +111,41 @@
             </pre
         >
 
-        <div class="mb-6 text-xs md:text-sm text-[#bac2de]">
+        <div class="mb-6 text-xs md:text-sm text-[var(--text)]">
           <p>> CipherShell v1.1.0 (Mobile Optimized)</p>
           <p class="hidden md:block">
             > Shortcuts:
-            <span class="text-[#f38ba8]">Ctrl+Shift+1..3</span> (Tabs) |
-            <span class="text-[#f38ba8]">Ctrl+G</span> (Gen Keys) |
-            <span class="text-[#f38ba8]">Ctrl+E/D</span> (Action)
+            <span class="text-[var(--red)]">Ctrl+Shift+1..3</span> (Tabs) |
+            <span class="text-[var(--red)]">Ctrl+G</span> (Gen Keys) |
+            <span class="text-[var(--red)]">Ctrl+E/D</span> (Action)
           </p>
           <p class="md:hidden">
-            > Touch Controls: <span class="text-[#a6e3a1]">Active</span>
+            > Touch Controls: <span class="text-[var(--green)]">Active</span>
           </p>
-          <div class="border-b border-[#6c7086]/30 my-4"></div>
+          <div class="border-b border-[var(--overlay)] my-4"></div>
         </div>
 
         <div
-          class="flex md:hidden w-full mb-6 border-b border-[#6c7086]/50 gap-1 select-none items-end"
+          class="flex md:hidden w-full mb-6 border-b border-[var(--overlay)] gap-1 select-none items-end"
         >
           <div
             id="mob-tab-gen"
             onclick="switchTab('generator')"
-            class="flex-1 py-2 text-center text-xs font-bold rounded-t-lg cursor-pointer transition-all border-t border-l border-r border-[#6c7086]/50 bg-[#cba6f7] text-[#1e1e2e] translate-y-[1px]"
+            class="flex-1 py-2 text-center text-xs font-bold rounded-t-lg cursor-pointer transition-all border-t border-l border-r border-[var(--overlay)] bg-[var(--accent)] text-[var(--base)] translate-y-[1px]"
           >
             GEN
           </div>
           <div
             id="mob-tab-vault"
             onclick="switchTab('vault')"
-            class="flex-1 py-2 text-center text-xs font-bold rounded-t-lg cursor-pointer transition-all border-t border-l border-r border-transparent text-[#6c7086] hover:bg-[#313244] bg-[#11111b]/50"
+            class="flex-1 py-2 text-center text-xs font-bold rounded-t-lg cursor-pointer transition-all border-t border-l border-r border-transparent text-[var(--overlay)] hover:bg-[var(--overlay)] bg-[var(--crust)]"
           >
             VAULT
           </div>
           <div
             id="mob-tab-identity"
             onclick="switchTab('identity')"
-            class="flex-1 py-2 text-center text-xs font-bold rounded-t-lg cursor-pointer transition-all border-t border-l border-r border-transparent text-[#6c7086] hover:bg-[#313244] bg-[#11111b]/50"
+            class="flex-1 py-2 text-center text-xs font-bold rounded-t-lg cursor-pointer transition-all border-t border-l border-r border-transparent text-[var(--overlay)] hover:bg-[var(--overlay)] bg-[var(--crust)]"
           >
             IDENTITY
           </div>
@@ -167,38 +155,38 @@
           class="flex-1 flex flex-col justify-start md:justify-center items-start space-y-6"
         >
           <div class="w-full">
-            <p class="text-[#89b4fa] mb-2">// PASSWORD_GENERATOR</p>
-            <p class="text-xs md:text-sm text-[#6c7086] mb-4">
+            <p class="text-[var(--accent2)] mb-2">// PASSWORD_GENERATOR</p>
+            <p class="text-xs md:text-sm text-[var(--overlay)] mb-4">
               Select entropy method.
             </p>
 
             <div class="flex flex-col md:flex-row gap-4 mb-6 text-sm">
               <button
                 onclick="generatePass('random')"
-                class="border border-[#a6e3a1]/30 p-3 md:border-none md:p-0 text-center hover:text-white text-[#a6e3a1] transition-colors rounded md:rounded-none"
+                class="border border-[var(--green)] p-3 md:border-none md:p-0 text-center hover:text-white text-[var(--green)] transition-colors rounded md:rounded-none"
               >
                 [ Random_Mode ]
               </button>
               <button
                 onclick="generatePass('memorable')"
-                class="border border-[#a6e3a1]/30 p-3 md:border-none md:p-0 text-center hover:text-white text-[#a6e3a1] transition-colors rounded md:rounded-none"
+                class="border border-[var(--green)] p-3 md:border-none md:p-0 text-center hover:text-white text-[var(--green)] transition-colors rounded md:rounded-none"
               >
                 [ Memorable_Mode ]
               </button>
             </div>
 
-            <div class="bg-[#11111b]/50 p-4 border-l-2 border-[#cba6f7] w-full">
-              <span class="text-[#6c7086] text-xs">$ output: </span>
+            <div class="bg-[var(--crust)] p-4 border-l-2 border-[var(--accent)] w-full">
+              <span class="text-[var(--overlay)] text-xs">$ output: </span>
               <div
                 id="pass-output"
-                class="text-lg md:text-xl text-[#cdd6f4] break-all mt-2 min-h-[3rem]"
+                class="text-lg md:text-xl text-[var(--text)] break-all mt-2 min-h-[3rem]"
               >
                 _waiting_for_input
               </div>
             </div>
             <button
               onclick="copyToClipboard('pass-output')"
-              class="mt-4 w-full md:w-auto border border-[#6c7086] p-2 md:border-none md:p-0 text-xs text-[#6c7086] hover:text-[#cdd6f4]"
+              class="mt-4 w-full md:w-auto border border-[var(--overlay)] p-2 md:border-none md:p-0 text-xs text-[var(--overlay)] hover:text-[var(--text)]"
             >
               [ Copy to Clipboard ]
             </button>
@@ -206,31 +194,31 @@
         </div>
 
         <div id="section-vault" class="hidden flex-1 flex flex-col space-y-6">
-          <p class="text-[#f38ba8] mb-2">// SECURE_VAULT (AES-128)</p>
+          <p class="text-[var(--red)] mb-2">// SECURE_VAULT (AES-128)</p>
 
           <div class="space-y-6 w-full max-w-3xl">
             <div class="flex flex-col md:flex-row md:items-start gap-2">
               <span
-                class="text-[#a6e3a1] whitespace-nowrap text-xs md:text-base"
+                class="text-[var(--green)] whitespace-nowrap text-xs md:text-base"
                 >user@vault:~/msg $</span
               >
               <textarea
                 id="vault-input"
                 rows="3"
-                class="cli-input text-base md:text-sm resize-none bg-[#11111b]/20 p-2 md:p-0 rounded md:rounded-none"
+                class="cli-input text-base md:text-sm resize-none bg-[var(--crust)] p-2 md:p-0 rounded md:rounded-none"
                 placeholder="Enter plaintext..."
               ></textarea>
             </div>
 
             <div class="flex flex-col md:flex-row md:items-center gap-2">
               <span
-                class="text-[#a6e3a1] whitespace-nowrap text-xs md:text-base"
+                class="text-[var(--green)] whitespace-nowrap text-xs md:text-base"
                 >user@vault:~/key $</span
               >
               <input
                 type="password"
                 id="vault-pass"
-                class="cli-input text-base md:text-sm bg-[#11111b]/20 p-2 md:p-0 rounded md:rounded-none"
+                class="cli-input text-base md:text-sm bg-[var(--crust)] p-2 md:p-0 rounded md:rounded-none"
                 placeholder="Enter passphrase..."
               />
             </div>
@@ -238,29 +226,29 @@
             <div class="pt-4 flex flex-col md:flex-row gap-4 text-sm">
               <button
                 onclick="processVault('encrypt')"
-                class="border border-[#89b4fa] p-3 md:border-none md:p-0 text-center text-[#89b4fa] hover:bg-[#89b4fa] hover:text-[#1e1e2e] rounded md:rounded-none transition-colors font-bold"
+                class="border border-[var(--accent2)] p-3 md:border-none md:p-0 text-center text-[var(--accent2)] hover:bg-[var(--accent2)] hover:text-[var(--base)] rounded md:rounded-none transition-colors font-bold"
               >
                 ENCRYPT >>
               </button>
               <button
                 onclick="processVault('decrypt')"
-                class="border border-[#f38ba8] p-3 md:border-none md:p-0 text-center text-[#f38ba8] hover:bg-[#f38ba8] hover:text-[#1e1e2e] rounded md:rounded-none transition-colors font-bold"
+                class="border border-[var(--red)] p-3 md:border-none md:p-0 text-center text-[var(--red)] hover:bg-[var(--red)] hover:text-[var(--base)] rounded md:rounded-none transition-colors font-bold"
               >
                 << DECRYPT
               </button>
             </div>
 
-            <div class="mt-6 border-t border-[#6c7086]/30 pt-4 pb-12">
-              <div class="text-[#6c7086] text-sm mb-1">STDOUT >></div>
+            <div class="mt-6 border-t border-[var(--overlay)] pt-4 pb-12">
+              <div class="text-[var(--overlay)] text-sm mb-1">STDOUT >></div>
               <div
                 id="vault-result"
-                class="text-[#cdd6f4] break-all font-mono text-sm"
+                class="text-[var(--text)] break-all font-mono text-sm"
               >
                 // Process output will appear here...
               </div>
               <button
                 onclick="copyToClipboard('vault-result')"
-                class="mt-4 w-full md:w-auto border border-[#6c7086] p-2 md:border-none md:p-0 text-xs text-[#6c7086] hover:text-[#cdd6f4]"
+                class="mt-4 w-full md:w-auto border border-[var(--overlay)] p-2 md:border-none md:p-0 text-xs text-[var(--overlay)] hover:text-[var(--text)]"
               >
                 [ Copy Output ]
               </button>
@@ -273,46 +261,46 @@
           class="hidden flex-1 flex flex-col space-y-8 pb-20"
         >
           <div>
-            <p class="text-[#f38ba8] mb-2 text-xs uppercase font-bold">
+            <p class="text-[var(--red)] mb-2 text-xs uppercase font-bold">
               // 1. MY_IDENTITY (KEYPAIR)
             </p>
             <button
               onclick="generateIdentity()"
-              class="w-full md:w-auto mb-4 text-xs border border-[#a6e3a1] text-[#a6e3a1] px-3 py-3 md:py-1 hover:bg-[#a6e3a1] hover:text-[#1e1e2e] transition-colors rounded md:rounded-none"
+              class="w-full md:w-auto mb-4 text-xs border border-[var(--green)] text-[var(--green)] px-3 py-3 md:py-1 hover:bg-[var(--green)] hover:text-[var(--base)] transition-colors rounded md:rounded-none"
             >
               [ GENERATE_NEW_KEYPAIR_2048 ]
             </button>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div class="relative group">
-                <label class="text-[10px] text-[#a6e3a1] block mb-1"
+                <label class="text-[10px] text-[var(--green)] block mb-1"
                   >PUBLIC_KEY</label
                 >
                 <textarea
                   id="rsa-public"
                   readonly
-                  class="w-full h-24 bg-[#11111b]/50 border border-[#a6e3a1]/50 p-2 text-[10px] leading-tight text-[#a6e3a1] resize-none focus:border-[#a6e3a1] outline-none font-mono rounded"
+                  class="w-full h-24 bg-[var(--crust)] border border-[var(--green)] p-2 text-[10px] leading-tight text-[var(--green)] resize-none focus:border-[var(--green)] outline-none font-mono rounded"
                 ></textarea>
                 <button
                   onclick="copyToClipboard('rsa-public')"
-                  class="absolute top-2 right-2 text-[10px] bg-[#1e1e2e] border border-[#a6e3a1] px-2 py-1 hover:bg-[#a6e3a1] hover:text-black rounded"
+                  class="absolute top-2 right-2 text-[10px] bg-[var(--base)] border border-[var(--green)] px-2 py-1 hover:bg-[var(--green)] hover:text-black rounded"
                 >
                   CPY
                 </button>
               </div>
 
               <div class="relative group">
-                <label class="text-[10px] text-[#f38ba8] block mb-1"
+                <label class="text-[10px] text-[var(--red)] block mb-1"
                   >PRIVATE_KEY</label
                 >
                 <textarea
                   id="rsa-private"
                   readonly
-                  class="w-full h-24 bg-[#11111b]/50 border border-[#f38ba8]/50 p-2 text-[10px] leading-tight text-[#f38ba8] resize-none focus:border-[#f38ba8] outline-none font-mono rounded"
+                  class="w-full h-24 bg-[var(--crust)] border border-[var(--red)] p-2 text-[10px] leading-tight text-[var(--red)] resize-none focus:border-[var(--red)] outline-none font-mono rounded"
                 ></textarea>
                 <button
                   onclick="copyToClipboard('rsa-private')"
-                  class="absolute top-2 right-2 text-[10px] bg-[#1e1e2e] border border-[#f38ba8] px-2 py-1 hover:bg-[#f38ba8] hover:text-black rounded"
+                  class="absolute top-2 right-2 text-[10px] bg-[var(--base)] border border-[var(--red)] px-2 py-1 hover:bg-[var(--red)] hover:text-black rounded"
                 >
                   CPY
                 </button>
@@ -320,39 +308,39 @@
             </div>
           </div>
 
-          <div class="border-t border-[#6c7086]/30 pt-6">
-            <p class="text-[#89b4fa] mb-4 text-xs uppercase font-bold">
+          <div class="border-t border-[var(--overlay)] pt-6">
+            <p class="text-[var(--accent2)] mb-4 text-xs uppercase font-bold">
               // 2. ASYMMETRIC_MESSAGING
             </p>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div
-                class="space-y-2 bg-[#11111b]/20 p-2 md:bg-transparent md:p-0 rounded"
+                class="space-y-2 bg-[var(--crust)] p-2 md:bg-transparent md:p-0 rounded"
               >
-                <p class="text-xs text-[#6c7086]">> Encrypt for recipient</p>
+                <p class="text-xs text-[var(--overlay)]">> Encrypt for recipient</p>
                 <input
                   id="rsa-msg-in"
-                  class="w-full bg-transparent border-b border-[#6c7086] py-2 md:py-1 text-base md:text-sm focus:border-[#89b4fa] outline-none"
+                  class="w-full bg-transparent border-b border-[var(--overlay)] py-2 md:py-1 text-base md:text-sm focus:border-[var(--accent2)] outline-none"
                   placeholder="Enter Message..."
                 />
 
                 <textarea
                   id="rsa-remote-key"
-                  class="w-full h-20 bg-[#11111b]/30 border border-[#6c7086]/50 p-2 text-[10px] resize-none focus:border-[#89b4fa] outline-none text-[#6c7086] rounded"
+                  class="w-full h-20 bg-[var(--crust)] border border-[var(--overlay)] p-2 text-[10px] resize-none focus:border-[var(--accent2)] outline-none text-[var(--overlay)] rounded"
                   placeholder="Paste Recipient's Public Key Here..."
                 ></textarea>
                 <button
                   onclick="processRSA('encrypt')"
-                  class="w-full border border-[#89b4fa] text-[#89b4fa] hover:bg-[#89b4fa] hover:text-[#1e1e2e] py-3 md:py-1 text-sm transition-colors font-bold rounded md:rounded-none"
+                  class="w-full border border-[var(--accent2)] text-[var(--accent2)] hover:bg-[var(--accent2)] hover:text-[var(--base)] py-3 md:py-1 text-sm transition-colors font-bold rounded md:rounded-none"
                 >
                   ENCRYPT >>
                 </button>
               </div>
 
               <div
-                class="space-y-2 bg-[#11111b]/20 p-2 md:bg-transparent md:p-0 rounded"
+                class="space-y-2 bg-[var(--crust)] p-2 md:bg-transparent md:p-0 rounded"
               >
-                <p class="text-xs text-[#6c7086]">
+                <p class="text-xs text-[var(--overlay)]">
                   > Decrypt with MY Private Key
                 </p>
 
@@ -360,13 +348,13 @@
 
                 <textarea
                   id="rsa-cipher-in"
-                  class="w-full h-20 bg-[#11111b]/30 border border-[#6c7086]/50 p-2 text-[10px] resize-none focus:border-[#f38ba8] outline-none text-[#6c7086] rounded"
+                  class="w-full h-20 bg-[var(--crust)] border border-[var(--overlay)] p-2 text-[10px] resize-none focus:border-[var(--red)] outline-none text-[var(--overlay)] rounded"
                   placeholder="Paste Ciphertext Here..."
                 ></textarea>
 
                 <button
                   onclick="processRSA('decrypt')"
-                  class="w-full border border-[#f38ba8] text-[#f38ba8] hover:bg-[#f38ba8] hover:text-[#1e1e2e] py-3 md:py-1 text-sm transition-colors font-bold rounded md:rounded-none"
+                  class="w-full border border-[var(--red)] text-[var(--red)] hover:bg-[var(--red)] hover:text-[var(--base)] py-3 md:py-1 text-sm transition-colors font-bold rounded md:rounded-none"
                 >
                   << DECRYPT
                 </button>
@@ -374,16 +362,16 @@
             </div>
 
             <div class="mt-6 pb-6">
-              <span class="text-[#6c7086] text-xs">$ rsa_output: </span>
+              <span class="text-[var(--overlay)] text-xs">$ rsa_output: </span>
               <div
                 id="rsa-result"
-                class="text-sm text-[#cdd6f4] break-all font-mono mt-2 p-2 bg-[#11111b]/30 rounded"
+                class="text-sm text-[var(--text)] break-all font-mono mt-2 p-2 bg-[var(--crust)] rounded"
               >
                 _waiting_
               </div>
               <button
                 onclick="copyToClipboard('rsa-result')"
-                class="mt-2 w-full md:w-auto border border-[#6c7086] p-2 md:border-none md:p-0 text-xs text-[#6c7086] hover:text-[#cdd6f4]"
+                class="mt-2 w-full md:w-auto border border-[var(--overlay)] p-2 md:border-none md:p-0 text-xs text-[var(--overlay)] hover:text-[var(--text)]"
               >
                 [ Copy Output ]
               </button>
@@ -392,31 +380,41 @@
         </div>
       </div>
 
-      <div class="hidden md:flex bg-[#11111b] text-sm justify-between select-none z-50 border-t border-[#6c7086]/30 shrink-0">
+      <div class="hidden md:flex bg-[var(--crust)] text-sm justify-between select-none z-50 border-t border-[var(--overlay)] shrink-0">
           
           <div class="flex flex-1 md:flex-none md:w-auto">
-              <div id="tab-gen" onclick="switchTab('generator')" class="cursor-pointer px-4 tab-active flex gap-2 hover:bg-[#313244] transition-colors items-center py-1">
+              <div id="tab-gen" onclick="switchTab('generator')" class="cursor-pointer px-4 tab-active flex gap-2 hover:bg-[var(--overlay)] transition-colors items-center py-1">
                   <span class="opacity-50">1</span>
                   <span>GEN</span>
               </div>
-              <div id="tab-vault" onclick="switchTab('vault')" class="cursor-pointer px-4 tab-inactive flex gap-2 hover:bg-[#313244] transition-colors items-center py-1">
+              <div id="tab-vault" onclick="switchTab('vault')" class="cursor-pointer px-4 tab-inactive flex gap-2 hover:bg-[var(--overlay)] transition-colors items-center py-1">
                   <span class="opacity-50">2</span>
                   <span>VAULT</span>
               </div>
-              <div id="tab-identity" onclick="switchTab('identity')" class="cursor-pointer px-4 tab-inactive flex gap-2 hover:bg-[#313244] transition-colors items-center py-1">
+              <div id="tab-identity" onclick="switchTab('identity')" class="cursor-pointer px-4 tab-inactive flex gap-2 hover:bg-[var(--overlay)] transition-colors items-center py-1">
                   <span class="opacity-50">3</span>
                   <span>ID</span>
               </div>
           </div>
           
-          <div class="px-4 text-[#a6e3a1] flex items-center py-1">
-              <span class="text-[#f38ba8] mr-1">♥</span> 100% 
-              <span id="clock-display" class="ml-4 text-[#89b4fa] font-bold">Initializing...</span>
+          <div class="px-4 text-[var(--green)] flex items-center py-1">
+            <div class="relative group"> <button onclick="toggleThemeMenu()" class="flex items-center gap-2 hover:bg-[var(--overlay)] px-3 py-1 rounded transition-colors focus:outline-none">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-[var(--accent)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
+              </svg>
+              <span id="current-theme-label" class="text-[var(--text)] font-bold text-xs uppercase">Catppuccin</span>
+              </button>
+
+              <div id="theme-menu" class="hidden absolute bottom-full right-0 mb-2 w-48 bg-[var(--base)] border border-[var(--overlay)] rounded shadow-xl z-[60] overflow-hidden">
+                  <div class="max-h-64 overflow-y-auto no-scrollbar"></div>
+              </div>
+            </div>
+            <span id="clock-display" class="ml-4 text-[var(--accent2)] font-bold">Initializing...</span>
           </div>
       </div>
-        <!-- <div class="px-4 text-[#a6e3a1] hidden md:block"> -->
-        <!--   <span class="text-[#f38ba8]">♥</span> 100% -->
-        <!--   <span id="clock-display" class="ml-4 text-[#89b4fa] font-bold" -->
+        <!-- <div class="px-4 text-[var(--green)] hidden md:block"> -->
+        <!--   <span class="text-[var(--red)]">♥</span> 100% -->
+        <!--   <span id="clock-display" class="ml-4 text-[var(--accent2)] font-bold" -->
         <!--     >Initializing...</span -->
         <!--   > -->
         <!-- </div> -->
