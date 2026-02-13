@@ -105,6 +105,52 @@
       .info-msg {
         color: var(--accent);
       }
+
+      /* Complex Animation Keyframes */
+      @keyframes glitch {
+        0% {
+          transform: translate(0);
+          text-shadow:
+            -2px 0 var(--red),
+            2px 0 var(--accent2);
+        }
+        25% {
+          transform: translate(-2px, 2px);
+        }
+        50% {
+          transform: translate(2px, -2px);
+          text-shadow:
+            2px 0 var(--red),
+            -2px 0 var(--accent2);
+        }
+        75% {
+          transform: translate(-2px, -2px);
+        }
+        100% {
+          transform: translate(0);
+          text-shadow: none;
+        }
+      }
+
+      @keyframes matrix-drop {
+        0% {
+          transform: translateY(-20px);
+          opacity: 0;
+          filter: brightness(2) blur(2px);
+        }
+        100% {
+          transform: translateY(0);
+          opacity: 1;
+          filter: brightness(1) blur(0);
+        }
+      }
+
+      .animate-glitch {
+        animation: glitch 0.3s ease-in-out infinite;
+      }
+      .animate-matrix {
+        animation: matrix-drop 0.8s forwards;
+      }
     </style>
   </head>
   <body onclick="document.getElementById('cmd-input').focus()">
@@ -124,8 +170,7 @@
       >
         <pre
           id="ascii-logo"
-          class="text-[var(--accent)] font-bold mb-4 leading-none whitespace-pre select-none text-left inline-block transition-opacity duration-500 ease-in-out"
-          style="opacity: 1"
+          class="text-[var(--accent)] font-bold mb-4 leading-none whitespace-pre select-none text-left inline-block transition-all duration-3000 ease-in-out"
         ></pre>
 
         <div class="text-[var(--text)] font-medium text-sm">
@@ -165,6 +210,7 @@
 
     <script src="{{ url_for('static', filename='terminal.js') }}"></script>
     <script src="{{ url_for('static', filename='logos.js') }}"></script>
+    <script src="{{ url_for('static', filename='animations.js') }}"></script>
     <style>
       /* Custom Scrollbar for the inner area */
       #terminal-scroll-area::-webkit-scrollbar {

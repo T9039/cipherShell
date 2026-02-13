@@ -29,37 +29,39 @@ const THEMES = [
 
 // --- INITIALIZATION ---
 window.onload = function() {
-    // 1. Load Theme
     const savedTheme = localStorage.getItem('cipherTheme') || 'catppuccin';
     applyTheme(savedTheme);
-    
-    // 2. Animated ASCII Logo Cycle
-    if (typeof LOGOS !== 'undefined' && LOGOS.length > 0) {
+
+    // Guard clause: only start animation if all dependencies loaded
+    if (typeof LOGOS !== 'undefined' && typeof LOGO_ANIMATIONS !== 'undefined') {
         const logoElement = document.getElementById('ascii-logo');
-        
-        // A. Set Initial Random Logo
-        let currentIndex = Math.floor(Math.random() * LOGOS.length);
-        logoElement.textContent = LOGOS[currentIndex];
+        if (!logoElement) return;
 
-        // B. Start the Animation Loop (Every 7 seconds)
+        let logoIndex = Math.floor(Math.random() * LOGOS.length);
+        logoElement.textContent = LOGOS[logoIndex];
+
         setInterval(() => {
-            // Step 1: Fade Out
-            logoElement.style.opacity = '0';
-
-            // Step 2: Wait for fade (500ms), then Swap Text
-            setTimeout(() => {
-                currentIndex = (currentIndex + 1) % LOGOS.length; // Move to next
-                logoElement.textContent = LOGOS[currentIndex];
-                
-                // Step 3: Fade In
-                logoElement.style.opacity = '1';
-            }, 1000); // Matches the 'duration-500' in CSS
+            const anim = LOGO_ANIMATIONS[Math.floor(Math.random() * LOGO_ANIMATIONS.length)];
             
-        }, 7000); // Total cycle time (7 seconds visible)
-    }
+            clearAnimations(logoElement);
+            logoElement.classList.add(...anim.out.split(' '));
 
-    // 3. Focus Input
-    inputField.focus();
+            setTimeout(() => {
+                logoIndex = (logoIndex + 1) % LOGOS.length;
+                logoElement.textContent = LOGOS[logoIndex];
+                
+                logoElement.classList.remove(...anim.out.split(' '));
+                logoElement.classList.add(...anim.in.split(' '));
+                
+                // Optional: remove pulse after 1s so it doesn't blink indefinitely
+                if (anim.name === 'flicker') {
+                    setTimeout(() => logoElement.classList.remove('animate-pulse'), 1000);
+                }
+            }, 3000); 
+        }, 11000); 
+    }
+    
+    if (typeof inputField !== 'undefined') inputField.focus();
 };
 
 // --- STATE ---
