@@ -29,10 +29,20 @@ const THEMES = [
 
 // --- INITIALIZATION ---
 window.onload = function() {
+    // 1. Load Theme
     const savedTheme = localStorage.getItem('cipherTheme') || 'catppuccin';
     applyTheme(savedTheme);
-    inputField.focus();
     
+    // 2. Randomize ASCII Logo [New Feature]
+    if (typeof LOGOS !== 'undefined' && LOGOS.length > 0) {
+        const randomLogo = LOGOS[Math.floor(Math.random() * LOGOS.length)];
+        // Use textContent to safely render the raw ASCII string including whitespace
+        const logoElement = document.getElementById('ascii-logo');
+        if (logoElement) logoElement.textContent = randomLogo;
+    }
+
+    // 3. Focus Input
+    inputField.focus();
 };
 
 // --- STATE ---
