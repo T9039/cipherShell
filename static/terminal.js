@@ -33,12 +33,29 @@ window.onload = function() {
     const savedTheme = localStorage.getItem('cipherTheme') || 'catppuccin';
     applyTheme(savedTheme);
     
-    // 2. Randomize ASCII Logo [New Feature]
+    // 2. Animated ASCII Logo Cycle
     if (typeof LOGOS !== 'undefined' && LOGOS.length > 0) {
-        const randomLogo = LOGOS[Math.floor(Math.random() * LOGOS.length)];
-        // Use textContent to safely render the raw ASCII string including whitespace
         const logoElement = document.getElementById('ascii-logo');
-        if (logoElement) logoElement.textContent = randomLogo;
+        
+        // A. Set Initial Random Logo
+        let currentIndex = Math.floor(Math.random() * LOGOS.length);
+        logoElement.textContent = LOGOS[currentIndex];
+
+        // B. Start the Animation Loop (Every 7 seconds)
+        setInterval(() => {
+            // Step 1: Fade Out
+            logoElement.style.opacity = '0';
+
+            // Step 2: Wait for fade (500ms), then Swap Text
+            setTimeout(() => {
+                currentIndex = (currentIndex + 1) % LOGOS.length; // Move to next
+                logoElement.textContent = LOGOS[currentIndex];
+                
+                // Step 3: Fade In
+                logoElement.style.opacity = '1';
+            }, 1000); // Matches the 'duration-500' in CSS
+            
+        }, 7000); // Total cycle time (7 seconds visible)
     }
 
     // 3. Focus Input
