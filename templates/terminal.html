@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CipherShell // Terminal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='themes.css') }}"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <style>
+      /* Base Setup */
+      body {
+        font-family: "JetBrains Mono", monospace;
+        background-color: #000;
+        margin: 0;
+        height: 100vh;
+        overflow: hidden; /* No body scroll, only terminal scroll */
+        background-image: url("{{ url_for('static', filename='backgrounds/dark/001.jpg') }}"); /* Default placeholder */
+        background-size: cover;
+        background-position: center;
+      }
+
+      /* The Glass Container */
+      #terminal-container {
+        width: 100%;
+        height: 100%;
+        background-color: color-mix(
+          in srgb,
+          var(--base),
+          transparent 40%
+        ); /* More opaque for readability */
+        backdrop-filter: blur(5px);
+        padding: 2rem;
+        overflow-y: auto; /* Scroll here */
+        display: flex;
+        flex-direction: column;
+        cursor: text; /* Clicking anywhere focuses input */
+      }
+
+      /* Scrollbar Styling (Minimal) */
+      #terminal-container::-webkit-scrollbar {
+        width: 8px;
+      }
+      #terminal-container::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      #terminal-container::-webkit-scrollbar-thumb {
+        background: var(--overlay);
+        border-radius: 4px;
+      }
+
+      /* Command Input Area */
+      #input-line {
+        display: flex;
+        align-items: center;
+        margin-top: 0.5rem;
+      }
+
+      /* The actual typing box - Invisible */
+      #cmd-input {
+        background: transparent;
+        border: none;
+        color: var(--text);
+        font-family: inherit;
+        font-size: 1rem;
+        flex-grow: 1;
+        outline: none;
+        margin-left: 0.5rem;
+        caret-color: var(--accent); /* Colored cursor */
+      }
+
+      /* Output Styling */
+      .command-output {
+        color: var(--text);
+        margin-bottom: 1rem;
+        white-space: pre-wrap; /* Preserve formatting */
+        line-height: 1.5;
+      }
+
+      /* Riced Prompt Styling */
+      .prompt-path {
+        color: var(--accent2);
+        font-weight: bold;
+      }
+      .prompt-arrow {
+        color: var(--green);
+        font-weight: bold;
+      }
+      .prompt-branch {
+        color: var(--overlay);
+      }
+      .success-msg {
+        color: var(--green);
+      }
+      .error-msg {
+        color: var(--red);
+      }
+      .info-msg {
+        color: var(--accent);
+      }
+    </style>
+  </head>
+  <body onclick="document.getElementById('cmd-input').focus()">
+    <div
+      id="terminal-wrapper"
+      style="
+        width: 100%;
+        height: 100%;
+        background-color: color-mix(in srgb, var(--base), transparent 10%);
+        backdrop-filter: blur(8px);
+        display: flex;
+        flex-direction: column;
+      "
+    >
+      <div
+        class="shrink-0 px-8 pt-8 pb-4 select-none flex flex-col items-center text-center"
+      >
+        <pre
+          class="text-[var(--accent)] font-bold mb-4 leading-none whitespace-pre"
+        >
+  ____ _       _                 ____  _          _ _ 
+ / ___(_)_ __ | |__   ___ _ __  / ___|| |__   ___| | |
+| |   | | '_ \| '_ \ / _ \ '__| \___ \| '_ \ / _ \ | |
+| |___| | |_) | | | |  __/ |     ___) | | | |  __/ | |
+ \____|_| .__/|_| |_|\___|_|    |____/|_| |_|\___|_|_|
+        |_|                                           
+            </pre
+        >
+
+        <div class="text-[var(--text)] font-medium text-sm">
+          <div class="mb-1">> Welcome to CipherShell v2.0 (CLI Edition)</div>
+          <div>
+            > Type <span class="text-[var(--green)] font-bold">'help'</span> to
+            see available commands.
+          </div>
+        </div>
+      </div>
+
+      <div
+        id="terminal-scroll-area"
+        class="flex-grow overflow-y-auto px-8 pb-8 pt-4"
+      >
+        <div id="history"></div>
+
+        <div id="input-line" class="flex items-center mt-2">
+          <span class="prompt-path text-[var(--accent2)] font-bold"
+            >~/ciphershell</span
+          >
+          <span class="prompt-branch text-[var(--overlay)]"> (main)</span>
+          <span class="prompt-arrow text-[var(--green)] font-bold ml-2">➜</span>
+
+          <input
+            type="text"
+            id="cmd-input"
+            autocomplete="off"
+            spellcheck="false"
+            name="cmd_terminal_interact"
+            class="bg-transparent border-none text-[var(--text)] flex-grow outline-none ml-2 caret-[var(--accent)] font-inherit text-base"
+            autofocus
+          />
+        </div>
+      </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='terminal.js') }}"></script>
+
+    <style>
+      /* Custom Scrollbar for the inner area */
+      #terminal-scroll-area::-webkit-scrollbar {
+        width: 8px;
+      }
+      #terminal-scroll-area::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      #terminal-scroll-area::-webkit-scrollbar-thumb {
+        background: var(--overlay);
+        border-radius: 4px;
+      }
+    </style>
+  </body>
+</html>

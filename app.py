@@ -167,5 +167,10 @@ def get_background():
         return jsonify({"url": ""})
 
 
+@app.route("/terminal")
+def terminal_mode():
+    return render_template("terminal.html")
+
+
 if __name__ == "__main__":
     app.run(debug=True)
