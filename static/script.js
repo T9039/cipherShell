@@ -263,15 +263,29 @@ function copyToClipboard(elementId) {
     }
 }
 
-// --- SYSTEM CLOCK ---
+// --- SYSTEM CLOCK (Format: Sat 14 Feb 08:00) ---
 function updateClock() {
     const now = new Date();
-    const dateStr = now.toISOString().split('T')[0];
-    const timeStr = now.toTimeString().split(' ')[0];
+    
+    // Arrays for custom formatting
+    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    
+    // Extract parts
+    const dayName = days[now.getDay()];      // e.g., "Sat"
+    const dayNum = now.getDate();            // e.g., 14
+    const monthName = months[now.getMonth()]; // e.g., "Feb"
+    
+    // Time with leading zeros
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    
+    // Combine: "Sat 14 Feb 08:00"
+    const timeString = `${dayName} ${dayNum} ${monthName} ${hours}:${minutes}`;
     
     const clockEl = document.getElementById('live-clock');
     if (clockEl) {
-        clockEl.innerText = `${timeStr}`;
+        clockEl.innerText = timeString;
     }
 }
 

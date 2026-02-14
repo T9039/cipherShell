@@ -122,10 +122,17 @@
         <div class="relative">
           <button
             onclick="toggleThemeMenu()"
-            class="text-[10px] md:text-xs font-bold border border-[var(--accent)] px-2 py-1 hover:bg-[var(--accent)] hover:text-[var(--base)] transition-all uppercase tracking-wider"
+            class="group flex items-center gap-2 px-2 py-1 hover:bg-[var(--overlay)]/20 rounded transition-all"
           >
-            [ <span id="current-theme-label">RETRO</span> ]
+            <div class="theme-icon w-4 h-4"></div>
+
+            <span
+              id="current-theme-label"
+              class="text-xs font-bold text-[var(--text)] tracking-wider"
+              >RETRO</span
+            >
           </button>
+
           <div
             id="theme-menu"
             class="hidden absolute right-0 top-full mt-1 w-40 bg-[var(--crust)] border border-[var(--accent)] z-50 shadow-xl max-h-60 overflow-y-auto"
@@ -377,13 +384,13 @@
         </div>
 
         <div
-          class="flex items-center gap-3 sm:gap-4 w-full sm:w-auto justify-between sm:justify-end"
+          class="flex items-center gap-4 w-full sm:w-auto justify-between sm:justify-end"
         >
           <div
             id="live-clock"
-            class="font-bold text-[var(--accent2)] tracking-widest opacity-90 font-mono"
+            class="font-bold text-[var(--accent2)] tracking-wide font-mono text-sm"
           >
-            00:00:00
+            -- -- -- --:--
           </div>
 
           <div class="flex items-center gap-3">
