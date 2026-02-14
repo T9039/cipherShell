@@ -1,7 +1,19 @@
 /* static/themes.css */
 
-/* 1. CATPPUCCIN (Default) */
-:root, [data-theme="catppuccin"] {
+/* 0. RETRO (The Default Green Style) */
+:root, [data-theme="retro"] {
+    --base: #030712;
+    --text: #22c55e;
+    --accent: #16a34a;
+    --accent2: #15803d;
+    --green: #22c55e;
+    --red: #ef4444;
+    --overlay: #14532d;
+    --crust: #111827;
+}
+
+/* 1. CATPPUCCIN  */
+[data-theme="catppuccin"] {
     --base: #1e1e2e;
     --text: #cdd6f4;
     --accent: #cba6f7; /* Mauve */

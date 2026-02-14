@@ -13,7 +13,7 @@ app = Flask(__name__)
 @app.route("/")
 def home():
     # Serves the frontend HTML (which we will build next)
-    return render_template("index2.html")
+    return render_template("index.html")
 
 
 @app.route("/api/generate-password", methods=["POST"])
@@ -106,6 +106,7 @@ def get_background():
 
     # 2. THEME MAPPING
     theme_map = {
+        "retro": ["green", "terminal", "hacker", "code", "dark"],
         "catppuccin": ["purple", "blue", "dark", "pink"],
         "dracula": ["purple", "red", "dark"],
         "nord": ["blue", "cyan", "white", "dark"],
