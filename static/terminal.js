@@ -360,6 +360,11 @@ function executeCommand(rawCommand) {
             }
             break;
 
+        case 'exit':
+        case 'gui':
+            window.location.href = "/desktop";
+            break;
+
         default:
             output = `<span class="error-msg">✘ Command not found: ${cmd}</span>`;
     }
