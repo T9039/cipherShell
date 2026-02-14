@@ -32,26 +32,59 @@ function toggleThemeMenu() {
 }
 
 function buildThemeMenu() {
-    const menu = document.getElementById('theme-menu');
-    menu.innerHTML = '';
+    // Target both Desktop and Mobile menus
+    const containers = ['theme-menu', 'theme-menu-mob'];
     
-    themes.forEach(t => {
-        const btn = document.createElement('button');
-        btn.className = "w-full text-left px-3 py-2 hover:bg-[var(--accent)] hover:text-[var(--base)] flex items-center justify-between text-xs font-bold transition-colors border-b border-[var(--overlay)]/30 last:border-0";
+    containers.forEach(containerId => {
+        // Find the inner div that holds the buttons
+        const parent = document.querySelector(`#${containerId} > div`);
+        if (!parent) return;
         
-        btn.innerHTML = `
-            <span>${t.name}</span>
-            <div class="flex gap-1">
-                <div class="w-2 h-2 rounded-full" style="background:${t.colors[0]}"></div>
-                <div class="w-2 h-2 rounded-full" style="background:${t.colors[1]}"></div>
-            </div>
-        `;
-        
-        btn.onclick = () => { 
-            applyTheme(t.id); 
-            toggleThemeMenu(); 
-        };
-        menu.appendChild(btn);
+        parent.innerHTML = ''; 
+
+        themes.forEach(theme => {
+            const btn = document.createElement('button');
+            
+            // 1. Set the data-theme attribute on the button so it can access that theme's variables!
+            btn.setAttribute('data-theme', theme.id);
+            
+            btn.className = "w-full text-left px-4 py-2 hover:bg-[var(--overlay)] flex items-center justify-between group transition-colors";
+            btn.onclick = () => {
+                applyTheme(theme.id);
+                toggleThemeMenu(containerId.includes('mob') ? 'mob' : '');
+            };
+
+            // LEFT SIDE: Icon + Name
+            const leftContainer = document.createElement('div');
+            leftContainer.className = "flex items-center gap-3";
+
+            // The Icon (Uses CSS Variable from the button's data-theme)
+            const iconDiv = document.createElement('div');
+            iconDiv.className = "theme-icon w-3 h-3 opacity-70 group-hover:opacity-100 transition-opacity";
+            // Important: Force the background to be the text color of the current theme so it's visible in the dropdown
+            iconDiv.style.backgroundColor = "var(--text)"; 
+
+            const nameSpan = document.createElement('span');
+            nameSpan.className = "text-[10px] font-bold text-[var(--text)] uppercase tracking-wide";
+            nameSpan.innerText = theme.name;
+
+            leftContainer.appendChild(iconDiv);
+            leftContainer.appendChild(nameSpan);
+
+            // RIGHT SIDE: Color Swatches
+            const rightContainer = document.createElement('div');
+            rightContainer.className = "flex gap-1";
+            theme.colors.forEach(color => {
+                const block = document.createElement('div');
+                block.className = "w-2 h-2 rounded-full"; // Changed to rounded-full for cleaner look
+                block.style.backgroundColor = color;
+                rightContainer.appendChild(block);
+            });
+
+            btn.appendChild(leftContainer);
+            btn.appendChild(rightContainer);
+            parent.appendChild(btn);
+        });
     });
 }
 

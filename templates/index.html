@@ -122,10 +122,9 @@
         <div class="relative">
           <button
             onclick="toggleThemeMenu()"
-            class="group flex items-center gap-2 px-2 py-1 hover:bg-[var(--overlay)]/20 rounded transition-all"
+            class="group flex items-center gap-2 px-2 py-1 hover:bg-[var(--overlay)] rounded transition-all"
           >
             <div class="theme-icon w-4 h-4"></div>
-
             <span
               id="current-theme-label"
               class="text-xs font-bold text-[var(--text)] tracking-wider"
@@ -135,8 +134,10 @@
 
           <div
             id="theme-menu"
-            class="hidden absolute right-0 top-full mt-1 w-40 bg-[var(--crust)] border border-[var(--accent)] z-50 shadow-xl max-h-60 overflow-y-auto"
-          ></div>
+            class="hidden absolute right-0 top-full mt-1 w-40 bg-[var(--crust)] border border-[var(--accent)] z-50 shadow-xl overflow-hidden"
+          >
+            <div class="max-h-60 overflow-y-auto"></div>
+          </div>
         </div>
       </div>
 
