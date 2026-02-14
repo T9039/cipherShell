@@ -1,19 +1,19 @@
 // --- CONFIGURATION ---
 const COMMAND_HISTORY = [];
 let historyIndex = -1;
-let CURRENT_KEYS = { pub: null, priv: null }; // Store keys in memory for the session
-
-// Interactive Mode State
-let inputMode = null; // null | 'encrypt_msg' | 'encrypt_key' | 'decrypt_msg'
-let tempStorage = {}; // Holds data between steps
+let CURRENT_KEYS = { pub: null, priv: null };
+let inputMode = null; 
+let tempStorage = {}; 
 
 const inputField = document.getElementById('cmd-input');
-const passField = document.getElementById('pass-input'); // NEW
+const ghostField = document.getElementById('cmd-ghost'); // NEW
 const historyContainer = document.getElementById('history');
 const terminalContainer = document.getElementById('terminal-scroll-area');
+const clockElement = document.getElementById('terminal-clock');
 
 // --- THEME DEFINITIONS ---
 const THEMES = [
+    { id: 'retro',      name: 'Retro Green',colors: ['#22c55e', '#16a34a'] },
     { id: 'catppuccin', name: 'Catppuccin', colors: ['#cba6f7', '#89b4fa'] },
     { id: 'dracula',    name: 'Dracula',    colors: ['#ff79c6', '#bd93f9'] },
     { id: 'nord',       name: 'Nord',       colors: ['#88c0d0', '#81a1c1'] },
@@ -27,12 +27,40 @@ const THEMES = [
     { id: 'oled',       name: 'OLED Midnight', colors: ['#bb9af7', '#0db9d7'] }
 ];
 
+// --- AUTOCOMPLETE CONFIGURATION ---
+const SUGGESTIONS = {
+    'help': [],
+    'clear': [],
+    'theme': ['list', 'retro', 'catppuccin', 'dracula', 'nord', 'gruvbox', 'tokyo', 'onedark', 'solarized', 'monokai', 'cyberpunk', 'matrix', 'oled'],
+    'genpass': ['-r', '--random', '-m', '--memorable'],
+    'vault': ['encrypt', 'decrypt'],
+    'identity': ['gen', 'show', 'encrypt', 'decrypt']
+};
+
+const suggestionGrid = document.getElementById('suggestion-grid'); // NEW
+
+// --- HELPER: Show Grid ---
+function showSuggestions(options) {
+    suggestionGrid.innerHTML = ''; // Clear old
+    options.forEach(opt => {
+        const div = document.createElement('div');
+        div.className = "cursor-pointer hover:text-[var(--accent)] transition-colors";
+        div.innerText = opt;
+        suggestionGrid.appendChild(div);
+    });
+}
+
+function clearSuggestions() {
+    suggestionGrid.innerHTML = '';
+}
+
 // --- INITIALIZATION ---
 window.onload = function() {
-    const savedTheme = localStorage.getItem('cipherTheme') || 'catppuccin';
+    const savedTheme = localStorage.getItem('cipherTheme') || 'retro';
     applyTheme(savedTheme);
+    updateTerminalClock();
 
-    // Guard clause: only start animation if all dependencies loaded
+    // Animation Logic
     if (typeof LOGOS !== 'undefined' && typeof LOGO_ANIMATIONS !== 'undefined') {
         const logoElement = document.getElementById('ascii-logo');
         if (!logoElement) return;
@@ -42,38 +70,91 @@ window.onload = function() {
 
         setInterval(() => {
             const anim = LOGO_ANIMATIONS[Math.floor(Math.random() * LOGO_ANIMATIONS.length)];
-            
             clearAnimations(logoElement);
             logoElement.classList.add(...anim.out.split(' '));
 
             setTimeout(() => {
                 logoIndex = (logoIndex + 1) % LOGOS.length;
                 logoElement.textContent = LOGOS[logoIndex];
-                
                 logoElement.classList.remove(...anim.out.split(' '));
                 logoElement.classList.add(...anim.in.split(' '));
-                
-                // Optional: remove pulse after 1s so it doesn't blink indefinitely
-                if (anim.name === 'flicker') {
-                    setTimeout(() => logoElement.classList.remove('animate-pulse'), 1000);
-                }
-            }, 3000); 
+                if (anim.name === 'flicker') setTimeout(() => logoElement.classList.remove('animate-pulse'), 1000);
+            }, 1000); 
         }, 11000); 
     }
-    
     if (typeof inputField !== 'undefined') inputField.focus();
 };
 
 // --- STATE ---
-let passwordBuffer = ''; // Hidden storage for the real password
+let passwordBuffer = '';
 
-// --- EVENT LISTENERS ---
+// --- GHOST TEXT LOGIC (Input Event) ---
+inputField.addEventListener('input', function(e) {
+    clearSuggestions();
+
+    const val = inputField.value;
+    
+    // 1. Clear state if empty or interacting
+    if (!val || inputMode) {
+        ghostField.value = '';
+        ghostField.dataset.complete = ''; // Clear stored completion
+        return;
+    }
+
+    // 2. Parse Logic
+    const args = val.split(' ');
+    const cmd = args[0];
+    const isArg = args.length > 1; 
+    let match = '';
+
+    // A. Match Command
+    if (!isArg) {
+        const allCmds = Object.keys(SUGGESTIONS);
+        const found = allCmds.find(c => c.startsWith(cmd));
+        if (found && found !== cmd) match = found;
+    } 
+    // B. Match Argument
+    else {
+        const argPrefix = args[args.length - 1]; 
+        
+        if (val.endsWith(' ')) {
+            ghostField.value = ''; // Don't suggest if typing space
+            return;
+        }
+
+        const possibleArgs = SUGGESTIONS[cmd]; 
+        if (possibleArgs && argPrefix) {
+            const foundArg = possibleArgs.find(a => a.startsWith(argPrefix));
+            if (foundArg && foundArg !== argPrefix) {
+                // Rebuild the full command string
+                const base = args.slice(0, -1).join(' ');
+                match = base + ' ' + foundArg;
+            }
+        }
+    }
+
+    // 3. Render Ghost
+    if (match && match.startsWith(val)) {
+        // STORE THE FULL CORRECT COMMAND FOR TAB KEY
+        ghostField.dataset.complete = match;
+
+        // Visual Trick: Fill the start with spaces so the grey text appears AFTER cursor
+        const suffix = match.slice(val.length);
+        const spacer = ' '.repeat(val.length);
+        
+        ghostField.value = spacer + suffix + ' [Tab]';
+    } else {
+        ghostField.value = '';
+        ghostField.dataset.complete = '';
+    }
+});
+
+// --- KEYDOWN LOGIC ---
 inputField.addEventListener('keydown', function(e) {
+    
     // 1. PASSWORD MODE INTERCEPTION
     if (inputMode === 'vault_pass') {
-        if (e.key === 'Enter') {
-            // Let it fall through to the main Enter handler, but use the buffer
-        }
+        if (e.key === 'Enter') { /* pass */ }
         else if (e.key === 'Backspace') {
             e.preventDefault();
             passwordBuffer = passwordBuffer.slice(0, -1);
@@ -81,29 +162,56 @@ inputField.addEventListener('keydown', function(e) {
             return;
         }
         else if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
-            // It's a printable character (a, b, 1, @, etc.)
             e.preventDefault();
             passwordBuffer += e.key;
-            inputField.value += '*'; // Visually show asterisk
+            inputField.value += '*';
             return;
         }
-        // Allow arrows, tab, etc. to function normally (or ignore them)
     }
 
-    // 2. NORMAL HISTORY NAVIGATION (Only when NOT in password mode)
+    // 2. TAB COMPLETION HANDLER
+    if (e.key === 'Tab') {
+        e.preventDefault(); 
+        
+        // Priority A: Fill Ghost Text (Inline)
+        if (ghostField.value) {
+            // Fix: Auto-append a space so user is ready for next argument immediately
+            inputField.value = ghostField.dataset.complete + ' ';
+            
+            ghostField.value = '';
+            ghostField.dataset.complete = '';
+            return;
+        }
+
+        // Priority B: Show Suggestion Grid (Below)
+        const val = inputField.value.trim();
+        const args = val.split(/\s+/); 
+        const cmd = args[0];
+        
+        // Trigger grid if we have suggestions and aren't deep in a sub-argument
+        if (SUGGESTIONS[cmd] && args.length <= 2) {
+            showSuggestions(SUGGESTIONS[cmd]);
+        }
+        
+        return;
+    }
+
+    // 3. HISTORY NAV
     if (e.key === 'ArrowUp' && !inputMode) {
         e.preventDefault();
         if (historyIndex > 0) { historyIndex--; inputField.value = COMMAND_HISTORY[historyIndex]; }
+        ghostField.value = ''; 
     } 
     else if (e.key === 'ArrowDown' && !inputMode) {
         e.preventDefault();
         if (historyIndex < COMMAND_HISTORY.length - 1) { historyIndex++; inputField.value = COMMAND_HISTORY[historyIndex]; }
         else { historyIndex = COMMAND_HISTORY.length; inputField.value = ''; }
+        ghostField.value = ''; 
     }
     
-    // 3. ENTER KEY HANDLER
+    // 4. ENTER KEY
     else if (e.key === 'Enter') {
-        // If in password mode, use the hidden buffer. Otherwise use the visible text.
+        ghostField.value = ''; 
         const finalValue = (inputMode === 'vault_pass') ? passwordBuffer : inputField.value.trim();
         
         if (inputMode) {
@@ -114,23 +222,29 @@ inputField.addEventListener('keydown', function(e) {
             historyIndex = COMMAND_HISTORY.length;
         }
         
-        // Reset Everything
         inputField.value = '';
-        passwordBuffer = ''; // Clear the secret buffer
+        passwordBuffer = '';
+        updateTerminalClock(); 
         scrollToBottom();
     }
 });
 
-// --- CORE LOGIC ---
+function updateTerminalClock() {
+    const now = new Date();
+    const timeStr = now.toTimeString().split(' ')[0];
+    if (clockElement) clockElement.innerText = timeStr;
+}
 
+// --- CORE LOGIC ---
 function executeCommand(rawCommand) {
-    // Echo the command (Riced Style)
     const promptHtml = `
-        <div class="mt-2">
-            <span class="text-[var(--accent2)] font-bold">~/ciphershell</span>
-            <span class="text-[var(--overlay)]"> (main)</span>
-            <span class="text-[var(--green)] font-bold ml-2">➜</span>
-            <span class="text-[var(--text)] ml-2">${rawCommand}</span>
+        <div class="mt-2 flex justify-between items-center">
+            <div>
+                <span class="text-[var(--accent2)] font-bold">~/ciphershell</span>
+                <span class="text-[var(--overlay)]"> (main)</span>
+                <span class="text-[var(--green)] font-bold ml-2">➜</span>
+                <span class="text-[var(--text)] ml-2">${rawCommand}</span>
+            </div>
         </div>`;
     appendToHistory(promptHtml);
 
@@ -140,45 +254,20 @@ function executeCommand(rawCommand) {
 
     switch (cmd) {
         case 'help':
-                    output = `
-        <div class="mb-2 text-[var(--accent)] font-bold">AVAILABLE COMMANDS:</div>
-
-        <div class="grid grid-cols-[120px_1fr] gap-x-2 gap-y-4 text-sm">
-          <div class="text-[var(--green)] font-bold">genpass</div>
-          <div class="text-[var(--text)]">
-              Generate secure passwords.
-              <br><span class="text-[var(--overlay)]">Usage: genpass [-r|--random] [-m|--memorable]</span>
-          </div>
-
-          <div class="text-[var(--green)] font-bold">vault</div>
-          <div class="text-[var(--text)]">
-              Symmetric (AES) encryption for text.
-              <br><span class="text-[var(--overlay)]">Usage: vault [encrypt|decrypt] "message" -p "password"</span>
-          </div>
-
-          <div class="text-[var(--green)] font-bold">identity</div>
-          <div class="text-[var(--text)]">
-              Asymmetric (RSA) key management.
-              <br><span class="text-[var(--overlay)]">Subcommands:</span>
-              <ul class="list-disc list-inside text-[var(--overlay)]">
-                  <li><span class="text-[var(--text)]">gen</span> : Generate new 2048-bit keypair</li>
-                  <li><span class="text-[var(--text)]">show</span> : Display current session keys</li>
-                  <li><span class="text-[var(--text)]">encrypt</span> : Encrypt message (Interactive)</li>
-                  <li><span class="text-[var(--text)]">decrypt</span> : Decrypt ciphertext (Interactive)</li>
-              </ul>
-          </div>
-
-          <div class="text-[var(--green)] font-bold">theme</div>
-          <div class="text-[var(--text)]">
-              Change the terminal visual style.
-              <br><span class="text-[var(--overlay)]">Usage: theme [list | name]</span>
-          </div>
-
-          <div class="text-[var(--green)] font-bold">clear</div>
-          <div class="text-[var(--text)]">Clear the terminal screen.</div>
-        </div>
-                    `;
-                    break;
+            output = `
+            <div class="mb-2 text-[var(--accent)] font-bold">AVAILABLE COMMANDS:</div>
+            <div class="grid grid-cols-[120px_1fr] gap-x-2 gap-y-4 text-sm">
+              <div class="text-[var(--green)] font-bold">genpass</div>
+              <div class="text-[var(--text)]">Generate passwords.<br><span class="text-[var(--overlay)]">Usage: genpass [-r|--random] [-m|--memorable]</span></div>
+              <div class="text-[var(--green)] font-bold">vault</div>
+              <div class="text-[var(--text)]">Symmetric (AES) encryption.<br><span class="text-[var(--overlay)]">Usage: vault [encrypt|decrypt]</span></div>
+              <div class="text-[var(--green)] font-bold">identity</div>
+              <div class="text-[var(--text)]">RSA key management.<br><span class="text-[var(--overlay)]">Subcommands: gen, show, encrypt, decrypt</span></div>
+              <div class="text-[var(--green)] font-bold">theme</div>
+              <div class="text-[var(--text)]">Change visual style.<br><span class="text-[var(--overlay)]">Usage: theme [list | name]</span></div>
+              <div class="text-[var(--green)] font-bold">clear</div><div class="text-[var(--text)]">Clear the terminal screen.</div>
+            </div>`;
+            break;
 
         case 'clear':
             historyContainer.innerHTML = '';
@@ -186,18 +275,18 @@ function executeCommand(rawCommand) {
 
         case 'theme':
             if (args[1] === 'list') {
-                // RENDER THEME LIST WITH COLORS
-                let listHtml = '<div class="grid grid-cols-2 gap-2 mt-2 max-w-md">';
+                let listHtml = '<div class="grid grid-cols-2 gap-x-6 gap-y-2 mt-2 max-w-lg">';
                 THEMES.forEach(t => {
-                    const color1 = t.colors[0];
-                    const color2 = t.colors[1];
+                    const c1 = t.colors[0];
+                    const c2 = t.colors[1];
                     listHtml += `
-                        <div class="flex items-center gap-2">
-                            <div class="flex">
-                                <div style="background:${color1}" class="w-3 h-3 rounded-sm"></div>
-                                <div style="background:${color2}" class="w-3 h-3 rounded-sm ml-1"></div>
+                        <div class="flex items-center gap-3" data-theme="${t.id}">
+                            <div class="cli-theme-icon" style="background-color: ${c1}"></div>
+                            <span class="font-bold text-sm tracking-wide" style="color: ${c1}">${t.name}</span>
+                            <div class="flex gap-1 ml-auto opacity-60">
+                                <div style="background:${c1}" class="w-2 h-2 rounded-full"></div>
+                                <div style="background:${c2}" class="w-2 h-2 rounded-full"></div>
                             </div>
-                            <span class="text-[var(--text)]">${t.id}</span>
                         </div>`;
                 });
                 listHtml += '</div>';
@@ -216,12 +305,8 @@ function executeCommand(rawCommand) {
             break;
 
         case 'genpass':
-            // Determine mode based on flags
             const mode = (args.includes('-m') || args.includes('--memorable')) ? 'memorable' : 'random';
-            
             appendToHistory(`<div class="ml-4 info-msg">Generating ${mode} password...</div>`);
-
-            // CHANGED: Now using POST to match @app.route("/api/generate-password", methods=["POST"])
             fetch('/api/generate-password', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -229,22 +314,16 @@ function executeCommand(rawCommand) {
             })
             .then(res => res.json())
             .then(data => {
-                appendToHistory(`<div class="ml-4 success-msg">✔ Password Generated:</div>`);
+                appendToHistory(`<div class="ml-4 success-msg">✔ Result:</div>`);
                 appendToHistory(`<div class="ml-4 text-[var(--text)] border border-[var(--green)]/30 p-2 select-all bg-[var(--crust)]/50 font-mono text-lg">${data.password}</div>`);
                 scrollToBottom();
-            })
-            .catch(err => {
-                appendToHistory(`<div class="ml-4 error-msg">✘ Error generating password.</div>`);
             });
             break;
 
         case 'vault':
             const vAction = args[1];
             if (vAction === 'encrypt' || vAction === 'decrypt') {
-                // Store the action for later
                 tempStorage.vaultAction = vAction;
-                
-                // Start Interactive Mode
                 inputMode = 'vault_msg';
                 output = `<span class="text-[var(--accent2)]">Enter text to ${vAction}:</span>`;
             } else {
@@ -261,36 +340,22 @@ function executeCommand(rawCommand) {
                     .then(data => {
                         CURRENT_KEYS.pub = data.public;
                         CURRENT_KEYS.priv = data.private;
-                        appendToHistory(`<div class="success-msg">✔ Keys generated and loaded into session.</div>`);
-                        appendToHistory(`<div class="text-[var(--overlay)] text-xs mt-2">Use 'identity show' to view them.</div>`);
+                        appendToHistory(`<div class="success-msg">✔ Keys loaded into session.</div>`);
                     });
-                return; // Async handling
-            } 
-            else if (sub === 'show') {
-                if (!CURRENT_KEYS.pub) output = `<span class="error-msg">No keys in session. Run 'identity gen' first.</span>`;
-                else {
-                    output = `
-<div class="text-[var(--green)] mb-1">PUBLIC KEY:</div>
-<div class="text-[var(--overlay)] text-[10px] break-all border border-[var(--overlay)]/30 p-2 mb-2">${CURRENT_KEYS.pub}</div>
-<div class="text-[var(--red)] mb-1">PRIVATE KEY:</div>
-<div class="text-[var(--overlay)] text-[10px] break-all border border-[var(--overlay)]/30 p-2 blur-[2px] hover:blur-0 transition-all">${CURRENT_KEYS.priv}</div>
-                    `;
-                }
-            }
-            else if (sub === 'encrypt') {
-                // START INTERACTIVE MODE
+                return;
+            } else if (sub === 'show') {
+                if (!CURRENT_KEYS.pub) output = `<span class="error-msg">No keys in session.</span>`;
+                else output = `<div class="text-[var(--green)]">PUB:</div><div class="text-[var(--overlay)] text-[10px] break-all border border-[var(--overlay)]/30 p-2 mb-2">${CURRENT_KEYS.pub}</div><div class="text-[var(--red)]">PRIV:</div><div class="text-[var(--overlay)] text-[10px] break-all border border-[var(--overlay)]/30 p-2 blur-[2px] hover:blur-0">${CURRENT_KEYS.priv}</div>`;
+            } else if (sub === 'encrypt') {
                 inputMode = 'encrypt_msg';
-                output = `<span class="text-[var(--accent2)]">Enter message to encrypt:</span>`;
-            }
-            else if (sub === 'decrypt') {
-                if (!CURRENT_KEYS.priv) {
-                    output = `<span class="error-msg">✘ No Private Key loaded. Run 'identity gen' first.</span>`;
-                } else {
+                output = `<span class="text-[var(--accent2)]">Enter message:</span>`;
+            } else if (sub === 'decrypt') {
+                if (!CURRENT_KEYS.priv) output = `<span class="error-msg">✘ No Private Key loaded.</span>`;
+                else {
                     inputMode = 'decrypt_msg';
-                    output = `<span class="text-[var(--accent2)]">Paste ciphertext to decrypt:</span>`;
+                    output = `<span class="text-[var(--accent2)]">Paste ciphertext:</span>`;
                 }
-            }
-            else {
+            } else {
                 output = `Usage: identity [gen | show | encrypt | decrypt]`;
             }
             break;
@@ -302,135 +367,67 @@ function executeCommand(rawCommand) {
     if (output) appendToHistory(`<div class="ml-4">${output}</div>`);
 }
 
-// --- UPDATED INTERACTIVE HANDLER ---
 function handleInteractiveInput(value) {
-    // 1. Echo logic
     let displayValue = value;
-    
-    // If we just finished typing a password, show asterisks in the log
-    if (inputMode === 'vault_pass') {
-        displayValue = '*'.repeat(value.length); 
-    }
-    
+    if (inputMode === 'vault_pass') displayValue = '*'.repeat(value.length);
     appendToHistory(`<div class="ml-4 text-[var(--overlay)] mb-2">➜ ${displayValue}</div>`);
 
-    // --- VAULT FLOW ---
     if (inputMode === 'vault_msg') {
         tempStorage.vaultMsg = value;
-        
-        // SWITCH TO PASSWORD MODE
         inputMode = 'vault_pass';
-        passwordBuffer = ''; // Reset buffer
-        inputField.value = ''; // Ensure field is empty for masking
-        
+        passwordBuffer = ''; 
+        inputField.value = '';
         appendToHistory(`<div class="ml-4 text-[var(--red)]">Enter Passphrase:</div>`);
-    }
-    else if (inputMode === 'vault_pass') {
-        const password = value; // This 'value' comes from our hidden passwordBuffer
-        
-        performVault(tempStorage.vaultAction, tempStorage.vaultMsg, password);
-        
+    } else if (inputMode === 'vault_pass') {
+        performVault(tempStorage.vaultAction, tempStorage.vaultMsg, value);
         inputMode = null;
         passwordBuffer = '';
-    }
-
-    // --- RSA FLOW (Existing) ---
-    else if (inputMode === 'encrypt_msg') {
+    } else if (inputMode === 'encrypt_msg') {
         tempStorage.msg = value;
         inputMode = 'encrypt_key';
-        appendToHistory(`<div class="ml-4 text-[var(--accent2)]">Paste Recipient Public Key (or type 'my'):</div>`);
-    } 
-    else if (inputMode === 'encrypt_key') {
-        let keyToUse = value;
-        if (value === 'my') {
-            if (!CURRENT_KEYS.pub) {
-                appendToHistory(`<div class="ml-4 error-msg">✘ No generated key found.</div>`);
-                inputMode = null; return;
-            }
-            keyToUse = CURRENT_KEYS.pub;
-        }
+        appendToHistory(`<div class="ml-4 text-[var(--accent2)]">Paste Public Key (or 'my'):</div>`);
+    } else if (inputMode === 'encrypt_key') {
+        let keyToUse = (value === 'my') ? CURRENT_KEYS.pub : value;
+        if (!keyToUse) { appendToHistory(`<div class="ml-4 error-msg">✘ No key found.</div>`); inputMode = null; return; }
         performCrypto('encrypt', tempStorage.msg, keyToUse);
         inputMode = null;
-    }
-    else if (inputMode === 'decrypt_msg') {
+    } else if (inputMode === 'decrypt_msg') {
         performCrypto('decrypt', value, CURRENT_KEYS.priv);
         inputMode = null;
     }
 }
 
-// --- CRYPTO API CALLER (Adapted for existing app.py endpoints) ---
 function performCrypto(action, text, key) {
     const isEncrypt = action === 'encrypt';
     const endpoint = isEncrypt ? '/api/rsa-encrypt' : '/api/rsa-decrypt';
+    const payload = isEncrypt ? { message: text, public_key: key } : { ciphertext: text, private_key: key };
     
-    // Construct payload based on your existing API requirements
-    const payload = isEncrypt 
-        ? { message: text, public_key: key }
-        : { ciphertext: text, private_key: key };
-
-    appendToHistory(`<div class="ml-4 info-msg">Processing ${action}...</div>`);
-    
-    fetch(endpoint, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-    })
+    appendToHistory(`<div class="ml-4 info-msg">Processing...</div>`);
+    fetch(endpoint, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload)})
     .then(res => res.json())
     .then(data => {
-        if (data.error) {
-            appendToHistory(`<div class="ml-4 error-msg">✘ Error: ${data.error}</div>`);
-        } else {
-            appendToHistory(`<div class="ml-4 success-msg">✔ Result:</div>`);
-            // Display result in a nice box
-            appendToHistory(`<div class="ml-4 text-[var(--text)] break-all border border-[var(--green)]/30 p-2 bg-[var(--crust)]/50 font-mono text-xs select-all">${data.result}</div>`);
-        }
+        if(data.error) appendToHistory(`<div class="ml-4 error-msg">✘ ${data.error}</div>`);
+        else appendToHistory(`<div class="ml-4 text-[var(--text)] break-all border border-[var(--green)]/30 p-2 bg-[var(--crust)]/50 font-mono text-xs select-all">${data.result}</div>`);
         scrollToBottom();
-    })
-    .catch(err => {
-        appendToHistory(`<div class="ml-4 error-msg">✘ Server Error: Connection failed.</div>`);
-        console.error(err);
     });
 }
 
-// --- VAULT (AES) API CALLER ---
 function performVault(action, text, password) {
     const isEncrypt = action === 'encrypt';
     const endpoint = isEncrypt ? '/api/encrypt' : '/api/decrypt';
+    const payload = isEncrypt ? { message: text, passphrase: password } : { ciphertext: text, passphrase: password };
     
-    // MATCHING YOUR BACKEND CODE EXACTLY:
-    // Encrypt expects: { message, passphrase }
-    // Decrypt expects: { ciphertext, passphrase }
-    const payload = isEncrypt
-        ? { message: text, passphrase: password }
-        : { ciphertext: text, passphrase: password };
-
-    appendToHistory(`<div class="ml-4 info-msg">Processing AES-${action}...</div>`);
-
-    fetch(endpoint, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-    })
+    appendToHistory(`<div class="ml-4 info-msg">Processing...</div>`);
+    fetch(endpoint, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload)})
     .then(res => res.json())
     .then(data => {
-        if (data.error) {
-            appendToHistory(`<div class="ml-4 error-msg">✘ Error: ${data.error}</div>`);
-        } else if (data.result && data.result.includes("Error:")) {
-             // Handle the "Error: Could not decrypt" response from your python try/except
-            appendToHistory(`<div class="ml-4 error-msg">✘ ${data.result}</div>`);
-        } else {
-            appendToHistory(`<div class="ml-4 success-msg">✔ Result:</div>`);
-            // Selectable Result Box
-            appendToHistory(`<div class="ml-4 text-[var(--text)] break-all border border-[var(--accent2)]/30 p-2 bg-[var(--crust)]/50 font-mono text-xs select-all">${data.result}</div>`);
-        }
+        if(data.error) appendToHistory(`<div class="ml-4 error-msg">✘ ${data.error}</div>`);
+        else if (data.result && data.result.includes("Error:")) appendToHistory(`<div class="ml-4 error-msg">✘ ${data.result}</div>`);
+        else appendToHistory(`<div class="ml-4 text-[var(--text)] break-all border border-[var(--accent2)]/30 p-2 bg-[var(--crust)]/50 font-mono text-xs select-all">${data.result}</div>`);
         scrollToBottom();
-    })
-    .catch(err => {
-        appendToHistory(`<div class="ml-4 error-msg">✘ Server Error.</div>`);
     });
 }
 
-// --- HELPERS ---
 function appendToHistory(html) {
     const div = document.createElement('div');
     div.innerHTML = html;
@@ -445,9 +442,7 @@ function scrollToBottom() {
 function applyTheme(themeId) {
     document.documentElement.setAttribute('data-theme', themeId);
     localStorage.setItem('cipherTheme', themeId);
-    fetch(`/api/background?theme=${themeId}`)
-        .then(res => res.json())
-        .then(data => {
-            if(data.url) document.body.style.backgroundImage = `url('${data.url}')`;
-        });
+    fetch(`/api/background?theme=${themeId}`).then(res => res.json()).then(data => {
+        if(data.url) document.body.style.backgroundImage = `url('${data.url}')`;
+    });
 }

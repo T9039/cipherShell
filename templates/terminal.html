@@ -15,55 +15,49 @@
     />
 
     <style>
-      /* Base Setup */
       body {
         font-family: "JetBrains Mono", monospace;
         background-color: #000;
         margin: 0;
         height: 100vh;
-        overflow: hidden; /* No body scroll, only terminal scroll */
-        background-image: url("{{ url_for('static', filename='backgrounds/dark/001.jpg') }}"); /* Default placeholder */
+        overflow: hidden;
+        background-image: url("{{ url_for('static', filename='backgrounds/dark/001.jpg') }}");
         background-size: cover;
         background-position: center;
       }
 
-      /* The Glass Container */
       #terminal-container {
         width: 100%;
         height: 100%;
-        background-color: color-mix(
-          in srgb,
-          var(--base),
-          transparent 40%
-        ); /* More opaque for readability */
+        background-color: color-mix(in srgb, var(--base), transparent 40%);
         backdrop-filter: blur(5px);
         padding: 2rem;
-        overflow-y: auto; /* Scroll here */
+        overflow-y: auto;
         display: flex;
         flex-direction: column;
-        cursor: text; /* Clicking anywhere focuses input */
+        cursor: text;
       }
 
-      /* Scrollbar Styling (Minimal) */
-      #terminal-container::-webkit-scrollbar {
+      /* Scrollbar */
+      ::-webkit-scrollbar {
         width: 8px;
       }
-      #terminal-container::-webkit-scrollbar-track {
+      ::-webkit-scrollbar-track {
         background: transparent;
       }
-      #terminal-container::-webkit-scrollbar-thumb {
+      ::-webkit-scrollbar-thumb {
         background: var(--overlay);
         border-radius: 4px;
       }
 
-      /* Command Input Area */
+      /* Input Area */
       #input-line {
         display: flex;
         align-items: center;
         margin-top: 0.5rem;
+        width: 100%;
       }
 
-      /* The actual typing box - Invisible */
       #cmd-input {
         background: transparent;
         border: none;
@@ -72,19 +66,11 @@
         font-size: 1rem;
         flex-grow: 1;
         outline: none;
-        margin-left: 0.5rem;
-        caret-color: var(--accent); /* Colored cursor */
+        caret-color: var(--accent);
+        padding: 0; /* Ensure no padding throws off alignment */
       }
 
-      /* Output Styling */
-      .command-output {
-        color: var(--text);
-        margin-bottom: 1rem;
-        white-space: pre-wrap; /* Preserve formatting */
-        line-height: 1.5;
-      }
-
-      /* Riced Prompt Styling */
+      /* Utilities */
       .prompt-path {
         color: var(--accent2);
         font-weight: bold;
@@ -106,50 +92,13 @@
         color: var(--accent);
       }
 
-      /* Complex Animation Keyframes */
-      @keyframes glitch {
-        0% {
-          transform: translate(0);
-          text-shadow:
-            -2px 0 var(--red),
-            2px 0 var(--accent2);
-        }
-        25% {
-          transform: translate(-2px, 2px);
-        }
-        50% {
-          transform: translate(2px, -2px);
-          text-shadow:
-            2px 0 var(--red),
-            -2px 0 var(--accent2);
-        }
-        75% {
-          transform: translate(-2px, -2px);
-        }
-        100% {
-          transform: translate(0);
-          text-shadow: none;
-        }
-      }
-
-      @keyframes matrix-drop {
-        0% {
-          transform: translateY(-20px);
-          opacity: 0;
-          filter: brightness(2) blur(2px);
-        }
-        100% {
-          transform: translateY(0);
-          opacity: 1;
-          filter: brightness(1) blur(0);
-        }
-      }
-
-      .animate-glitch {
-        animation: glitch 0.3s ease-in-out infinite;
-      }
-      .animate-matrix {
-        animation: matrix-drop 0.8s forwards;
+      /* Icon Class for 'theme list' command */
+      .cli-theme-icon {
+        width: 1rem;
+        height: 1rem;
+        background-color: var(--text);
+        -webkit-mask: var(--theme-icon) no-repeat center / contain;
+        mask: var(--theme-icon) no-repeat center / contain;
       }
     </style>
   </head>
@@ -170,9 +119,8 @@
       >
         <pre
           id="ascii-logo"
-          class="text-[var(--accent)] font-bold mb-4 leading-none whitespace-pre select-none text-left inline-block transition-all duration-3000 ease-in-out"
+          class="text-[var(--accent)] font-bold mb-4 leading-none whitespace-pre select-none text-left inline-block transition-all duration-1000 ease-in-out"
         ></pre>
-
         <div class="text-[var(--text)] font-medium text-sm">
           <div class="mb-1">> Welcome to CipherShell v2.0 (CLI Edition)</div>
           <div>
@@ -195,34 +143,42 @@
           <span class="prompt-branch text-[var(--overlay)]"> (main)</span>
           <span class="prompt-arrow text-[var(--green)] font-bold ml-2">➜</span>
 
-          <input
-            type="text"
-            id="cmd-input"
-            autocomplete="off"
-            spellcheck="false"
-            name="cmd_terminal_interact"
-            class="bg-transparent border-none text-[var(--text)] flex-grow outline-none ml-2 caret-[var(--accent)] font-inherit text-base"
-            autofocus
-          />
+          <div class="relative flex-grow ml-2">
+            <input
+              type="text"
+              id="cmd-ghost"
+              disabled
+              class="absolute top-0 left-0 w-full bg-transparent border-none text-[var(--overlay)] opacity-40 font-inherit text-base pointer-events-none z-0 p-0"
+            />
+
+            <input
+              type="text"
+              id="cmd-input"
+              autocomplete="off"
+              spellcheck="false"
+              name="cmd_terminal_interact"
+              class="relative z-10 w-full bg-transparent border-none text-[var(--text)] outline-none caret-[var(--accent)] font-inherit text-base p-0"
+              autofocus
+            />
+          </div>
+
+          <div
+            id="terminal-clock"
+            class="text-[var(--text)] font-mono text-m opacity-70 ml-4 select-none shrink-0"
+          >
+            --:--:--
+          </div>
         </div>
+
+        <div
+          id="suggestion-grid"
+          class="grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-1 ml-6 mt-1 mb-2 text-xs text-[var(--overlay)] font-mono font-bold empty:hidden"
+        ></div>
       </div>
     </div>
 
     <script src="{{ url_for('static', filename='terminal.js') }}"></script>
     <script src="{{ url_for('static', filename='logos.js') }}"></script>
     <script src="{{ url_for('static', filename='animations.js') }}"></script>
-    <style>
-      /* Custom Scrollbar for the inner area */
-      #terminal-scroll-area::-webkit-scrollbar {
-        width: 8px;
-      }
-      #terminal-scroll-area::-webkit-scrollbar-track {
-        background: transparent;
-      }
-      #terminal-scroll-area::-webkit-scrollbar-thumb {
-        background: var(--overlay);
-        border-radius: 4px;
-      }
-    </style>
   </body>
 </html>
