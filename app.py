@@ -1,7 +1,7 @@
 import os
 import random
 
-from flask import Flask, jsonify, render_template, request
+from flask import Flask, jsonify, redirect, render_template, request, url_for
 
 import cipher_logic
 
@@ -10,10 +10,57 @@ app = Flask(__name__)
 # --- ROUTES ---
 
 
+# 1. The Smart Router (Root URL)
 @app.route("/")
-def home():
-    # Serves the frontend HTML (which we will build next)
-    return render_template("index.html")
+def index():
+    # 1. Safe Get: Defaults to '' so .lower() never crashes
+    user_agent = request.headers.get("User-Agent", "").lower()
+
+    # 2. Check for mobile keywords
+    is_mobile = (
+        "mobile" in user_agent or "android" in user_agent or "iphone" in user_agent
+    )
+
+    # 3. Route accordingly
+    if is_mobile:
+        return redirect(url_for("touch_mode"))
+    else:
+        return redirect(url_for("desktop_mode"))
+
+
+# 2. Explicit Routes (So buttons work)
+@app.route("/touch")
+def touch_mode():
+    return render_template("touch.html")
+
+
+@app.route("/desktop")
+def desktop_mode():
+    # GATEKEEPER: Check if user is on mobile
+    user_agent = request.headers.get("User-Agent", "").lower()
+    is_mobile = (
+        "mobile" in user_agent or "android" in user_agent or "iphone" in user_agent
+    )
+
+    # If mobile user tries to access Desktop, force them back to Touch
+    if is_mobile:
+        return redirect(url_for("touch_mode"))
+
+    return render_template("desktop.html")
+
+
+@app.route("/terminal")
+def terminal_mode():
+    # GATEKEEPER: Terminal is also strictly non-mobile
+    user_agent = request.headers.get("User-Agent", "").lower()
+    is_mobile = (
+        "mobile" in user_agent or "android" in user_agent or "iphone" in user_agent
+    )
+
+    if is_mobile:
+        return redirect(url_for("touch_mode"))
+
+    return render_template("terminal.html")
 
 
 @app.route("/api/generate-password", methods=["POST"])
@@ -166,11 +213,6 @@ def get_background():
     else:
         # Failsafe: If no images found, return empty (Frontend handles this by showing CSS color)
         return jsonify({"url": ""})
-
-
-@app.route("/terminal")
-def terminal_mode():
-    return render_template("terminal.html")
 
 
 if __name__ == "__main__":
