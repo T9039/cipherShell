@@ -1,6 +1,6 @@
 // --- THEME CONFIGURATION ---
 const themes = [
-    { id: 'retro',      name: 'retro green',colors: ['#22c55e', '#16a34a'] },
+    { id: 'retro',      name: 'Retro Green',colors: ['#22c55e', '#16a34a'] },
     { id: 'catppuccin', name: 'Catppuccin', colors: ['#cba6f7', '#89b4fa'] },
     { id: 'dracula',    name: 'Dracula',    colors: ['#ff79c6', '#bd93f9'] },
     { id: 'nord',       name: 'Nord',       colors: ['#88c0d0', '#81a1c1'] },
@@ -16,54 +16,15 @@ const themes = [
 
 // --- INITIALIZATION ---
 window.onload = function() {
-    // 1. Theme Init
     const saved = localStorage.getItem('cipherTheme') || 'retro';
     applyTheme(saved);
     buildThemeMenu();
 
-    // 2. Start ASCII Animation (Only runs if elements exist)
     startLogoAnimation();
+
+    updateClock();
+    setInterval(updateClock, 1000);
 };
-
-// --- LOGO ANIMATION ENGINE ---
-function startLogoAnimation() {
-    // Safety Check: Ensure libraries loaded
-    if (typeof LOGOS === 'undefined' || typeof LOGO_ANIMATIONS === 'undefined') return;
-
-    const logoElement = document.getElementById('ascii-logo');
-    if (!logoElement) return;
-
-    let logoIndex = Math.floor(Math.random() * LOGOS.length);
-    
-    // Set Initial State
-    logoElement.textContent = LOGOS[logoIndex];
-    logoElement.style.opacity = '1';
-
-    setInterval(() => {
-        // 1. Pick Random Animation
-        const anim = LOGO_ANIMATIONS[Math.floor(Math.random() * LOGO_ANIMATIONS.length)];
-        
-        // 2. Animate OUT
-        clearAnimations(logoElement);
-        logoElement.classList.add(...anim.out.split(' '));
-
-        setTimeout(() => {
-            // 3. Swap Content
-            logoIndex = (logoIndex + 1) % LOGOS.length;
-            logoElement.textContent = LOGOS[logoIndex];
-            
-            // 4. Animate IN
-            logoElement.classList.remove(...anim.out.split(' '));
-            logoElement.classList.add(...anim.in.split(' '));
-            
-            // Cleanup pulse effect
-            if (anim.name === 'flicker') {
-                setTimeout(() => logoElement.classList.remove('animate-pulse'), 1000);
-            }
-        }, 1000); // 1s transition time
-
-    }, 8000); // 7s hold + 1s transition
-}
 
 // --- THEME LOGIC ---
 function toggleThemeMenu() {
@@ -95,40 +56,27 @@ function buildThemeMenu() {
 }
 
 function applyTheme(themeId) {
-    // 1. Set Attribute for CSS Variables
     document.documentElement.setAttribute('data-theme', themeId);
-    
-    // 2. Save Preference
     localStorage.setItem('cipherTheme', themeId);
     
-    // 3. Update Label
     const themeObj = themes.find(t => t.id === themeId);
     if(themeObj) {
         const label = document.getElementById('current-theme-label');
         if(label) label.innerText = themeObj.name.toUpperCase();
     }
-
-    // 4. Update Background Image (New Logic)
     updateBackground(themeId);
 }
 
-// --- BACKGROUND FETCHER ---
 function updateBackground(themeId) {
-    // If 'retro', remove background image to keep it clean/black
     if (themeId === 'retro') {
         document.body.style.backgroundImage = 'none';
         return;
     }
-
     fetch(`/api/background?theme=${themeId}`)
         .then(res => res.json())
         .then(data => {
             if(data.url) {
                 document.body.style.backgroundImage = `url('${data.url}')`;
-                document.body.style.backgroundSize = "cover";
-                document.body.style.backgroundPosition = "center";
-                document.body.style.backgroundRepeat = "no-repeat";
-                document.body.style.backgroundAttachment = "fixed"; // Parallax effect
             }
         })
         .catch(err => console.error("Background fetch failed:", err));
@@ -141,24 +89,28 @@ function switchTab(tabName) {
 
     sections.forEach(id => document.getElementById(id).classList.add('hidden'));
     
-    // Reset tabs
     tabs.forEach(id => {
         const el = document.getElementById(id);
-        el.className = "flex-1 py-3 text-center hover:bg-[var(--base)] transition-colors border-r border-[var(--overlay)] text-[var(--overlay)]";
+        // Default Inactive State
+        el.className = "flex-1 py-3 md:py-3 py-4 text-center hover:bg-black/20 transition-colors border-r border-[var(--overlay)] text-[var(--overlay)]";
     });
 
-    // Active tab
-    if (tabName === 'generator') {
-        document.getElementById('section-generator').classList.remove('hidden');
-        document.getElementById('tab-gen').className = "flex-1 py-3 text-center transition-colors border-r border-[var(--overlay)] font-bold text-[var(--text)] bg-[var(--base)]";
-    } 
-    else if (tabName === 'vault') {
-        document.getElementById('section-vault').classList.remove('hidden');
-        document.getElementById('tab-vault').className = "flex-1 py-3 text-center transition-colors border-r border-l border-[var(--overlay)] font-bold text-[var(--text)] bg-[var(--base)]";
-    }
-    else if (tabName === 'identity') {
-        document.getElementById('section-identity').classList.remove('hidden');
-        document.getElementById('tab-identity').className = "flex-1 py-3 text-center transition-colors border-l border-[var(--overlay)] font-bold text-[var(--text)] bg-[var(--base)]";
+    // Show Content & Scroll to top
+    const section = document.getElementById(`section-${tabName}`);
+    section.classList.remove('hidden');
+    
+    // Reset Scroll for the new tab
+    document.querySelector('.overflow-y-auto').scrollTop = 0;
+
+    // Active State Styling
+    const activeTab = document.getElementById(`tab-${tabName === 'generator' ? 'gen' : tabName}`);
+    activeTab.className = "flex-1 py-3 md:py-3 py-4 text-center transition-colors border-r border-[var(--overlay)] font-bold text-[var(--text)] bg-black/10";
+    
+    // Specific border logic for first/last tabs if needed, but keeping it simple works best for mobile flex
+    if(tabName === 'vault') {
+         activeTab.classList.add('border-l');
+    } else if (tabName === 'identity') {
+         activeTab.classList.add('border-l');
     }
 }
 
@@ -175,6 +127,10 @@ async function generatePass(mode) {
         });
         const data = await response.json();
         outputField.value = data.password;
+        
+        // Mobile UX: Slide to result
+        setTimeout(() => outputField.scrollIntoView({behavior: "smooth", block: "center"}), 100);
+
     } catch (error) {
         outputField.value = "Error: Connection Refused.";
     }
@@ -209,6 +165,10 @@ async function processVault(action) {
         if (data.error) resultField.value = "Error: " + data.error;
         else if (data.result === undefined) resultField.value = "Error: Operation Failed.";
         else resultField.value = data.result;
+
+        // Mobile UX: Slide to result
+        setTimeout(() => resultField.scrollIntoView({behavior: "smooth", block: "center"}), 100);
+
     } catch (error) {
         resultField.value = "System Error: " + error;
     }
@@ -228,6 +188,10 @@ async function generateRSAKeys() {
         
         pubField.value = data.public;
         privField.value = data.private;
+
+        // Mobile UX: Slide to result
+        setTimeout(() => pubField.scrollIntoView({behavior: "smooth", block: "center"}), 100);
+
     } catch (error) {
         pubField.value = "Error generating keys.";
         privField.value = "";
@@ -239,7 +203,10 @@ function useGeneratedKey(type) {
     const val = document.getElementById(sourceId).value;
     
     if(val && !val.includes("Generating") && !val.includes("Error")) {
-        document.getElementById('rsa-key-input').value = val;
+        const target = document.getElementById('rsa-key-input');
+        target.value = val;
+        // Scroll to the input where we pasted it
+        target.scrollIntoView({behavior: "smooth", block: "center"});
     } else {
         alert("No key generated yet!");
     }
@@ -272,6 +239,10 @@ async function processRSA(action) {
 
         if (data.error) resultField.value = "Error: " + data.error;
         else resultField.value = data.result;
+        
+        // Mobile UX: Slide to result
+        setTimeout(() => resultField.scrollIntoView({behavior: "smooth", block: "center"}), 100);
+
     } catch (error) {
         resultField.value = "System Error: " + error;
     }
@@ -290,4 +261,48 @@ function copyToClipboard(elementId) {
         btn.innerText = "[COPIED!]";
         setTimeout(() => btn.innerText = originalText, 2000);
     }
+}
+
+// --- SYSTEM CLOCK ---
+function updateClock() {
+    const now = new Date();
+    const dateStr = now.toISOString().split('T')[0];
+    const timeStr = now.toTimeString().split(' ')[0];
+    
+    const clockEl = document.getElementById('live-clock');
+    if (clockEl) {
+        clockEl.innerText = `${timeStr}`;
+    }
+}
+
+// --- ASCII ANIMATION ---
+function startLogoAnimation() {
+    if (typeof LOGOS === 'undefined' || typeof LOGO_ANIMATIONS === 'undefined') return;
+
+    const logoElement = document.getElementById('ascii-logo');
+    if (!logoElement) return;
+
+    let logoIndex = Math.floor(Math.random() * LOGOS.length);
+    logoElement.textContent = LOGOS[logoIndex];
+    logoElement.style.opacity = '1';
+
+    setInterval(() => {
+        const anim = LOGO_ANIMATIONS[Math.floor(Math.random() * LOGO_ANIMATIONS.length)];
+        
+        clearAnimations(logoElement);
+        logoElement.classList.add(...anim.out.split(' '));
+
+        setTimeout(() => {
+            logoIndex = (logoIndex + 1) % LOGOS.length;
+            logoElement.textContent = LOGOS[logoIndex];
+            
+            logoElement.classList.remove(...anim.out.split(' '));
+            logoElement.classList.add(...anim.in.split(' '));
+            
+            if (anim.name === 'flicker') {
+                setTimeout(() => logoElement.classList.remove('animate-pulse'), 1000);
+            }
+        }, 1000);
+
+    }, 8000);
 }
